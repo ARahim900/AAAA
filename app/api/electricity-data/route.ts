@@ -1,74 +1,88 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server"
 
-// Sample electricity data
+// Sample electricity data (in a real app, this would come from a database)
 const electricityData = [
-  { 
-    "Building": "Main Tower", 
-    "Meter ID": "ELEC-001", 
-    "Oct-24": 18500, 
-    "Nov-24": 19200, 
-    "Dec-24": 20100, 
-    "Jan-25": 21000, 
-    "Feb-25": 20450, 
-    "Mar-25": 21200, 
-    "Apr-25": 22800 
+  {
+    building: "Main Building",
+    category: "Commercial",
+    meterID: "EM001",
+    "Oct-2023": 45780,
+    "Nov-2023": 43250,
+    "Dec-2023": 48900,
+    "Jan-2024": 52300,
+    "Feb-2024": 49600,
+    "Mar-2024": 51200,
   },
-  { 
-    "Building": "Residence A", 
-    "Meter ID": "ELEC-002", 
-    "Oct-24": 12800, 
-    "Nov-24": 13100, 
-    "Dec-24": 14200, 
-    "Jan-25": 15100, 
-    "Feb-25": 14800, 
-    "Mar-25": 15300, 
-    "Apr-25": 16500 
+  {
+    building: "Residential Block A",
+    category: "Residential",
+    meterID: "EM002",
+    "Oct-2023": 32450,
+    "Nov-2023": 30800,
+    "Dec-2023": 33500,
+    "Jan-2024": 37200,
+    "Feb-2024": 35400,
+    "Mar-2024": 36700,
   },
-  { 
-    "Building": "Residence B", 
-    "Meter ID": "ELEC-003", 
-    "Oct-24": 11500, 
-    "Nov-24": 12000, 
-    "Dec-24": 12800, 
-    "Jan-25": 13500, 
-    "Feb-25": 13200, 
-    "Mar-25": 13800, 
-    "Apr-25": 14900 
+  {
+    building: "Residential Block B",
+    category: "Residential",
+    meterID: "EM003",
+    "Oct-2023": 29800,
+    "Nov-2023": 28350,
+    "Dec-2023": 30900,
+    "Jan-2024": 34500,
+    "Feb-2024": 32750,
+    "Mar-2024": 33900,
   },
-  { 
-    "Building": "Commercial Block", 
-    "Meter ID": "ELEC-004", 
-    "Oct-24": 22400, 
-    "Nov-24": 23100, 
-    "Dec-24": 24300, 
-    "Jan-25": 25500, 
-    "Feb-25": 24900, 
-    "Mar-25": 25800, 
-    "Apr-25": 27200 
+  {
+    building: "Community Center",
+    category: "Common Areas",
+    meterID: "EM004",
+    "Oct-2023": 12300,
+    "Nov-2023": 11700,
+    "Dec-2023": 13600,
+    "Jan-2024": 15200,
+    "Feb-2024": 14350,
+    "Mar-2024": 14750,
   },
-  { 
-    "Building": "Amenities Center", 
-    "Meter ID": "ELEC-005", 
-    "Oct-24": 9800, 
-    "Nov-24": 10200, 
-    "Dec-24": 10900, 
-    "Jan-25": 11800, 
-    "Feb-25": 11400, 
-    "Mar-25": 11900, 
-    "Apr-25": 12800 
-  }
-];
+  {
+    building: "Sports Complex",
+    category: "Common Areas",
+    meterID: "EM005",
+    "Oct-2023": 4670,
+    "Nov-2023": 3900,
+    "Dec-2023": 5100,
+    "Jan-2024": 5800,
+    "Feb-2024": 5900,
+    "Mar-2024": 5450,
+  },
+]
 
 export async function GET(request: NextRequest) {
-  try {
-    // Return data with 200 OK status
-    return NextResponse.json(electricityData, { status: 200 });
-  } catch (error) {
-    // Handle unexpected errors
-    console.error('Error processing request:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+  // Get query parameters
+  const searchParams = request.nextUrl.searchParams
+  const period = searchParams.get("period") || "monthly"
+  const category = searchParams.get("category") || null
+  const building = searchParams.get("building") || null
+
+  // Filter data based on parameters
+  let filteredData = electricityData
+
+  if (category) {
+    filteredData = filteredData.filter(
+      (item) => item.category.toLowerCase() === category.toLowerCase()
+    )
   }
+
+  if (building) {
+    filteredData = filteredData.filter(
+      (item) => item.building.toLowerCase().includes(building.toLowerCase())
+    )
+  }
+
+  // Add artificial delay to simulate network latency
+  await new Promise((resolve) => setTimeout(resolve, 800))
+
+  return NextResponse.json(filteredData)
 }
