@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import {
   LineChart,
   Line,
@@ -622,6 +623,34 @@ export default function WaterDashboard() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
+              {/* Navigation Links */}
+              <Link href="/" className="bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-4 py-2 text-white font-medium flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Main Dashboard
+              </Link>
+              
+              <div className="relative group">
+                <button className="bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-4 py-2 text-white font-medium flex items-center gap-2">
+                  <span>Other Utilities</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden group-hover:block">
+                  <Link href="/electricity" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                    Electricity Management
+                  </Link>
+                  <Link href="/stp-plant" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                    STP System
+                  </Link>
+                  <Link href="/contractors" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                    Contractor Tracker
+                  </Link>
+                </div>
+              </div>
+              
               <DataFilter
                 label="Month"
                 options={monthOptions}
