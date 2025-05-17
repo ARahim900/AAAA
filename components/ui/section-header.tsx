@@ -1,18 +1,21 @@
-import type React from "react"
+import React from "react"
+import { cn } from "@/lib/utils"
+
 interface SectionHeaderProps {
   title: string
   description?: string
+  className?: string
   actions?: React.ReactNode
 }
 
-export function SectionHeader({ title, description, actions }: SectionHeaderProps) {
+export function SectionHeader({ title, description, className, actions }: SectionHeaderProps) {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <div className={cn("flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6", className)}>
       <div>
-        <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
-        {description && <p className="text-gray-500 mt-1">{description}</p>}
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{title}</h2>
+        {description && <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>}
       </div>
-      {actions && <div className="mt-4 md:mt-0">{actions}</div>}
+      {actions && <div className="mt-3 sm:mt-0 flex-shrink-0">{actions}</div>}
     </div>
   )
 }
