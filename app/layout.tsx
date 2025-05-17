@@ -1,33 +1,31 @@
-"use client"
-
+import type React from "react"
+import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
+import { AppProvider } from "@/context/app-context"
+import { InputDetector } from "@/components/input-detector"
+import { MainContent } from "@/components/layout/main-content"
 
 const inter = Inter({ subsets: ["latin"] })
 
+export const metadata: Metadata = {
+  title: "Muscat Bay Operations Dashboard",
+  description: "Operational dashboard for Muscat Bay water, electricity, STP plant, and contractor management",
+    generator: 'v0.dev'
+}
+
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Muscat Bay Operations Dashboard</title>
-        <meta name="description" content="Muscat Bay Operations Dashboard for water, electricity, STP plant and contractor management" />
-        <link rel="icon" href="/favicon.ico" />
-      </head>
+    <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <InputDetector />
+        <AppProvider>
+          <MainContent>{children}</MainContent>
+        </AppProvider>
       </body>
     </html>
   )
