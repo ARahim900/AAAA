@@ -405,7 +405,7 @@ export default function MainDashboard() {
                 <CardContent>
                   {isLoading.water ? (
                     <div className="flex justify-center py-4">
-                      <LoadingSpinner size="sm" />
+                      <LoadingSpinner />
                     </div>
                   ) : (
                     <>
@@ -446,7 +446,7 @@ export default function MainDashboard() {
                 <CardContent>
                   {isLoading.electricity ? (
                     <div className="flex justify-center py-4">
-                      <LoadingSpinner size="sm" />
+                      <LoadingSpinner />
                     </div>
                   ) : (
                     <>
@@ -487,7 +487,7 @@ export default function MainDashboard() {
                 <CardContent>
                   {isLoading.stp ? (
                     <div className="flex justify-center py-4">
-                      <LoadingSpinner size="sm" />
+                      <LoadingSpinner />
                     </div>
                   ) : (
                     <>
@@ -528,7 +528,7 @@ export default function MainDashboard() {
                 <CardContent>
                   {isLoading.contractors ? (
                     <div className="flex justify-center py-4">
-                      <LoadingSpinner size="sm" />
+                      <LoadingSpinner />
                     </div>
                   ) : (
                     <>
@@ -571,9 +571,9 @@ export default function MainDashboard() {
                 ) : (
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={waterData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <LineChart data={waterConsumptionData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
-                        <XAxis dataKey="month" />
+                        <XAxis dataKey="name" />
                         <YAxis />
                         <Tooltip />
                         <Legend />
@@ -601,29 +601,14 @@ export default function MainDashboard() {
                 ) : (
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      {electricityData.length > 0 ? (
-                        <BarChart 
-                          data={Object.keys(electricityData[0])
-                            .filter(key => key.includes("-") && !isNaN(Number(electricityData[0][key])))
-                            .slice(-6) // Get the last 6 months
-                            .map(month => ({
-                              name: month,
-                              consumption: electricityData.reduce((sum, record) => sum + (Number(record[month]) || 0), 0)
-                            }))}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
-                          <XAxis dataKey="name" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="consumption" fill={WARNING_COLOR} name="Consumption (kWh)" />
-                        </BarChart>
-                      ) : (
-                        <div className="flex justify-center items-center h-full">
-                          <p>No electricity data available</p>
-                        </div>
-                      )}
+                      <BarChart data={electricityConsumptionData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="consumption" fill={WARNING_COLOR} name="Consumption (kWh)" />
+                      </BarChart>
                     </ResponsiveContainer>
                   </div>
                 )}
@@ -647,30 +632,14 @@ export default function MainDashboard() {
                 ) : (
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
-                      {stpData.length > 0 ? (
-                        <LineChart 
-                          data={stpData
-                            .sort((a, b) => new Date(a["Date:"]).getTime() - new Date(b["Date:"]).getTime())
-                            .slice(-6) // Get the last 6 records
-                            .map(record => ({
-                              name: new Date(record["Date:"]).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }),
-                              efficiency: record["Total Inlet Sewage Received from (MB+Tnk) -m³"] > 0 ?
-                                (record["Total Treated Water Produced - m³"] / record["Total Inlet Sewage Received from (MB+Tnk) -m³"]) * 100 : 0
-                            }))}
-                          margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
-                          <XAxis dataKey="name" />
-                          <YAxis domain={[70, 100]} />
-                          <Tooltip />
-                          <Line type="monotone" dataKey="efficiency" stroke={SUCCESS_COLOR} name="Efficiency (%)" strokeWidth={2} />
-                          <ReferenceLine y={85} stroke="red" strokeDasharray="3 3" />
-                        </LineChart>
-                      ) : (
-                        <div className="flex justify-center items-center h-full">
-                          <p>No STP data available</p>
-                        </div>
-                      )}
+                      <LineChart data={stpPerformanceData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
+                        <XAxis dataKey="name" />
+                        <YAxis domain={[70, 100]} />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="efficiency" stroke={SUCCESS_COLOR} name="Efficiency (%)" strokeWidth={2} />
+                        <ReferenceLine y={85} stroke="red" strokeDasharray="3 3" />
+                      </LineChart>
                     </ResponsiveContainer>
                   </div>
                 )}
