@@ -588,11 +588,11 @@ export default function WaterDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with solid background */}
+      {/* Improved Header with solid background */}
       <div
         className="relative overflow-hidden"
         style={{
-          background: `#4E4456`,
+          background: `linear-gradient(135deg, ${BASE_COLOR} 0%, ${SECONDARY_COLOR} 100%)`,
           boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
         }}
       >
@@ -613,7 +613,8 @@ export default function WaterDashboard() {
         </div>
 
         <div className="container mx-auto px-4 py-6 relative z-10">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+          {/* Header Content */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div className="flex items-center gap-4">
               <img src="/logo.png" alt="Muscat Bay Logo" className="h-12 w-auto" />
               <div>
@@ -623,62 +624,29 @@ export default function WaterDashboard() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
-              {/* Navigation Links */}
-              <Link href="/" className="bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-4 py-2 text-white font-medium flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                Main Dashboard
-              </Link>
-              
-              <div className="relative group">
-                <button className="bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-4 py-2 text-white font-medium flex items-center gap-2">
-                  <span>Other Utilities</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-20 hidden group-hover:block">
-                  <Link href="/electricity" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                    Electricity Management
-                  </Link>
-                  <Link href="/stp-plant" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                    STP System
-                  </Link>
-                  <Link href="/contractors" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                    Contractor Tracker
-                  </Link>
-                </div>
+              {/* Filters Section - Reorganized */}
+              <div className="flex flex-wrap gap-3">
+                <DataFilter
+                  label="Month"
+                  options={monthOptions}
+                  value={selectedMonth}
+                  onChange={setSelectedMonth}
+                  className="bg-white/10 rounded-lg px-3 py-2 text-white"
+                />
+
+                <DataFilter
+                  label="Zone"
+                  options={zoneOptions}
+                  value={selectedZone}
+                  onChange={setSelectedZone}
+                  className="bg-white/10 rounded-lg px-3 py-2 text-white"
+                />
               </div>
-              
-              <DataFilter
-                label="Month"
-                options={monthOptions}
-                value={selectedMonth}
-                onChange={setSelectedMonth}
-                className="bg-white/10 rounded-lg px-3 py-2 text-white"
-              />
-
-              <DataFilter
-                label="Zone"
-                options={zoneOptions}
-                value={selectedZone}
-                onChange={setSelectedZone}
-                className="bg-white/10 rounded-lg px-3 py-2 text-white"
-              />
-
-              <button
-                onClick={() => setShowAnimations(!showAnimations)}
-                className="bg-white/10 text-white rounded-lg px-3 py-2 text-sm flex items-center"
-                aria-pressed={showAnimations}
-              >
-                {showAnimations ? "Disable Animations" : "Enable Animations"}
-              </button>
             </div>
           </div>
 
           {/* Time Range Slider with white text */}
-          <div className="mt-6">
+          <div className="mt-2">
             <TimeRangeSlider value={timeRange} onChange={setTimeRange} min={0} max={15} labels={timeRangeLabels} />
           </div>
         </div>
