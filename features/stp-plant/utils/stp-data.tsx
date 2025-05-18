@@ -1,45 +1,25 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { createClient } from '@supabase/supabase-js';
 
-// Type definition for the STP data provided
+// Supabase client initialization
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-supabase-url.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Type definition for Supabase STP Daily Records
 export interface StpData {
-  "Date:": string;
-  "Number of Tankers Discharged:": number;
-  "Expected Tanker Volume (m³) (20 m3)": number;
-  "Direct In line Sewage (MB)": number;
-  "Total Inlet Sewage Received from (MB+Tnk) -m³": number;
-  "Total Treated Water Produced - m³": number;
-  "Total TSE Water Output to Irrigation - m³": number;
-}
-
-// Parse the raw data string into a structured array of StpData
-export function parseStpCsvData(data: string): StpData[] {
-  // Split the data into lines
-  const lines = data.trim().split('\n');
-  
-  // Get headers
-  const headers = lines[0].split('\t');
-  
-  // Parse each data row
-  return lines.slice(1).map(line => {
-    const values = line.split('\t');
-    const record: any = {};
-    
-    headers.forEach((header, index) => {
-      // Clean up the value and convert numbers
-      const value = values[index]?.trim();
-      if (header === "Date:") {
-        record[header] = value;
-      } else {
-        // Try to convert to number, fall back to original value if NaN
-        const numValue = parseFloat(value?.replace(/,/g, '.') || '0');
-        record[header] = isNaN(numValue) ? value : numValue;
-      }
-    });
-    
-    return record as StpData;
-  });
+  id: number;
+  date: string;
+  num_tankers_discharged: number;
+  expected_tanker_volume: number;
+  direct_inline_sewage: number;
+  total_inlet_sewage: number;
+  total_treated_water: number;
+  total_tse_water_output: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Aggregated monthly data
@@ -54,6 +34,7 @@ export interface MonthlyData {
   totalTseOutput: number;
   avgEfficiency: number;
   utilizationRate: number;
+  daysInMonth: number;
 }
 
 // Function to aggregate data by month
@@ -65,13 +46,9 @@ export function aggregateByMonth(data: StpData[]): MonthlyData[] {
   
   data.forEach(record => {
     // Parse the date
-    const dateParts = record["Date:"].split('/');
-    const day = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const year = parseInt(dateParts[2]);
-    
-    // Skip invalid dates
-    if (isNaN(day) || isNaN(month) || isNaN(year)) return;
+    const date = new Date(record.date);
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
     
     const monthKey = `${year}-${month.toString().padStart(2, '0')}`;
     const monthName = new Date(year, month - 1, 1).toLocaleString('default', { month: 'long' });
@@ -94,12 +71,12 @@ export function aggregateByMonth(data: StpData[]): MonthlyData[] {
     }
     
     // Accumulate values
-    monthlyData[monthKey].totalTankers += record["Number of Tankers Discharged:"];
-    monthlyData[monthKey].totalTankerVolume += record["Expected Tanker Volume (m³) (20 m3)"];
-    monthlyData[monthKey].totalDirectSewage += record["Direct In line Sewage (MB)"];
-    monthlyData[monthKey].totalInletSewage += record["Total Inlet Sewage Received from (MB+Tnk) -m³"];
-    monthlyData[monthKey].totalTreatedWater += record["Total Treated Water Produced - m³"];
-    monthlyData[monthKey].totalTseOutput += record["Total TSE Water Output to Irrigation - m³"];
+    monthlyData[monthKey].totalTankers += record.num_tankers_discharged;
+    monthlyData[monthKey].totalTankerVolume += record.expected_tanker_volume;
+    monthlyData[monthKey].totalDirectSewage += record.direct_inline_sewage;
+    monthlyData[monthKey].totalInletSewage += record.total_inlet_sewage;
+    monthlyData[monthKey].totalTreatedWater += record.total_treated_water;
+    monthlyData[monthKey].totalTseOutput += record.total_tse_water_output;
     monthlyData[monthKey].daysInMonth = (monthlyData[monthKey].daysInMonth || 0) + 1;
   });
   
@@ -126,22 +103,51 @@ export function aggregateByMonth(data: StpData[]): MonthlyData[] {
   }).sort((a, b) => {
     // Sort by year and month
     if (a.year !== b.year) return a.year - b.year;
-    return new Date(0, parseInt(a.month) - 1).getMonth() - new Date(0, parseInt(b.month) - 1).getMonth();
+    return new Date(0, new Date(`${a.month} 1, 2000`).getMonth()).getMonth() - 
+           new Date(0, new Date(`${b.month} 1, 2000`).getMonth()).getMonth();
   });
 }
 
-// Hook to process STP data
-export function useStpData(rawData: string) {
-  return useMemo(() => {
-    // Parse the raw data
-    const parsedData = parseStpCsvData(rawData);
+// Hook to fetch and process STP data from Supabase
+export function useStpData() {
+  const [stpData, setStpData] = useState<StpData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchStpData() {
+      try {
+        setIsLoading(true);
+        
+        const { data, error } = await supabase
+          .from('stp_daily_records')
+          .select('*')
+          .order('date', { ascending: true });
+        
+        if (error) {
+          throw new Error(`Error fetching STP data: ${error.message}`);
+        }
+        
+        setStpData(data || []);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Failed to fetch STP data:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch STP data");
+        setIsLoading(false);
+      }
+    }
     
-    // Aggregate by month
-    const monthlyData = aggregateByMonth(parsedData);
-    
-    return {
-      daily: parsedData,
-      monthly: monthlyData
-    };
-  }, [rawData]);
+    fetchStpData();
+  }, []);
+
+  const monthly = useMemo(() => {
+    return aggregateByMonth(stpData);
+  }, [stpData]);
+
+  return {
+    daily: stpData,
+    monthly,
+    isLoading,
+    error
+  };
 }
