@@ -34,6 +34,20 @@ const WARNING_COLOR = "#FFB347";
 const DANGER_COLOR = "#FF6B6B";
 const CHART_COLORS = [ACCENT_COLOR, BASE_COLOR, INFO_COLOR, SUCCESS_COLOR, WARNING_COLOR, DANGER_COLOR];
 
+// Function to lighten a color (matching water dashboard)
+const lightenColor = (color: string, amount: number) => {
+  const num = Number.parseInt(color.replace("#", ""), 16);
+  const r = Math.min(255, ((num >> 16) & 0xff) + 255 * amount);
+  const g = Math.min(255, ((num >> 8) & 0xff) + 255 * amount);
+  const b = Math.min(255, (num & 0xff) + 255 * amount);
+  return "#" + ((1 << 24) + (Math.round(r) << 16) + (Math.round(g) << 8) + Math.round(b)).toString(16).slice(1);
+};
+
+// Generate gradient string for CSS (matching water dashboard)
+const generateGradient = (color1: string, color2: string, direction = "to right") => {
+  return `linear-gradient(${direction}, ${color1}, ${color2})`;
+};
+
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -50,40 +64,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-// KPI Card Component
-function KPICard({ title, value, unit, icon, trendValue, trendLabel }: { 
-  title: string; 
-  value: string | number; 
-  unit?: string;
-  icon?: React.ReactNode;
-  trendValue?: number;
-  trendLabel?: string;
-}) {
-  const formattedValue = typeof value === 'number' ? value.toLocaleString() : value;
-  const trendColor = trendValue ? (trendValue > 0 ? 'text-green-500' : 'text-red-500') : '';
-  const trendIcon = trendValue ? (trendValue > 0 ? '↑' : '↓') : '';
-  
-  return (
-    <div className="bg-white rounded-lg shadow-md p-4 h-full">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-gray-600 text-sm font-medium">{title}</h3>
-        {icon && <span className="text-gray-400">{icon}</span>}
-      </div>
-      <div className="flex items-baseline">
-        <span className="text-3xl font-bold text-gray-800">{formattedValue}</span>
-        {unit && <span className="ml-1 text-gray-500">{unit}</span>}
-      </div>
-      {trendValue && (
-        <div className={`flex items-center mt-2 text-sm ${trendColor}`}>
-          <span>{trendIcon} {Math.abs(trendValue).toFixed(1)}%</span>
-          <span className="ml-1 text-gray-500">vs previous {trendLabel || 'period'}</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// DataFilter Component
+// Data Filter Component
 interface DataFilterProps {
   label: string;
   options: { value: string; label: string }[];
@@ -117,7 +98,7 @@ export default function ElectricityDashboard() {
   const [tableData, setTableData] = useState<any[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [selectedZone, setSelectedZone] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeView, setActiveView] = useState("overview");
   const isMobile = useMobile();
 
   // Process consumption data for display in the data table and charts
@@ -242,7 +223,7 @@ export default function ElectricityDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Clean Header with gradient background */}
+      {/* Header with gradient background - matched to water dashboard */}
       <div
         className="relative overflow-hidden"
         style={{
@@ -267,7 +248,7 @@ export default function ElectricityDashboard() {
         </div>
 
         <div className="container mx-auto px-4 py-6 relative z-10">
-          {/* Header Content - Clean and simplified */}
+          {/* Header Content - matches water dashboard */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div className="flex items-center gap-4">
               <img src="/logo.png" alt="Muscat Bay Logo" className="h-12 w-auto" />
@@ -278,7 +259,7 @@ export default function ElectricityDashboard() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
-              {/* Filters Section - Clean and organized */}
+              {/* Filters Section */}
               <div className="flex flex-wrap gap-3">
                 <DataFilter
                   label="Month"
@@ -323,300 +304,196 @@ export default function ElectricityDashboard() {
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <KPICard 
-            title="Total Consumption"
-            value={summaryMetrics.totalConsumption}
-            unit="kWh"
-            icon={<Zap className="h-5 w-5 text-[#8ACCD5]" />}
-            trendValue={summaryMetrics.percentageChange}
-            trendLabel="month"
-          />
-          <KPICard 
-            title="Peak Demand"
-            value={summaryMetrics.peakDemand}
-            unit="kW"
-            icon={<Activity className="h-5 w-5 text-[#8ACCD5]" />}
-          />
-          <KPICard 
-            title="Avg. Consumption / Meter"
-            value={Number(summaryMetrics.averageConsumptionPerMeter.toFixed(2))}
-            unit="kWh"
-            icon={<Cpu className="h-5 w-5 text-[#8ACCD5]" />}
-          />
-          <KPICard 
-            title="Number of Meters"
-            value={summaryMetrics.numberOfMeters}
-            icon={<Clock className="h-5 w-5 text-[#8ACCD5]" />}
-          />
+      {/* Main Dashboard Content - Simplified to match water dashboard */}
+      <div className="container mx-auto px-4 py-6">
+        {/* Key Metrics Section - Simplified cards to match water dashboard */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white p-5 rounded-lg shadow-md">
+            <h3 className="text-gray-600 text-sm font-medium uppercase tracking-wider">Total Consumption</h3>
+            <p className="text-3xl font-bold mt-2" style={{ color: BASE_COLOR }}>
+              {summaryMetrics.totalConsumption.toLocaleString()} kWh
+            </p>
+          </div>
+
+          <div className="bg-white p-5 rounded-lg shadow-md">
+            <h3 className="text-gray-600 text-sm font-medium uppercase tracking-wider">Peak Demand</h3>
+            <p className="text-3xl font-bold mt-2" style={{ color: BASE_COLOR }}>
+              {summaryMetrics.peakDemand.toLocaleString()} kW
+            </p>
+          </div>
+
+          <div className="bg-white p-5 rounded-lg shadow-md">
+            <h3 className="text-gray-600 text-sm font-medium uppercase tracking-wider">Avg. Per Meter</h3>
+            <p className="text-3xl font-bold mt-2" style={{ color: BASE_COLOR }}>
+              {Number(summaryMetrics.averageConsumptionPerMeter.toFixed(2)).toLocaleString()} kWh
+            </p>
+          </div>
+
+          <div className="bg-white p-5 rounded-lg shadow-md">
+            <h3 className="text-gray-600 text-sm font-medium uppercase tracking-wider">Number of Meters</h3>
+            <p className="text-3xl font-bold mt-2" style={{ color: BASE_COLOR }}>
+              {summaryMetrics.numberOfMeters.toLocaleString()}
+            </p>
+          </div>
         </div>
 
-        {/* Tabs navigation */}
-        <Tabs 
-          defaultValue="overview" 
-          className="w-full"
-          value={activeTab}
-          onValueChange={setActiveTab}
-        >
-          <TabsList className="mb-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="consumption-details">Consumption Details</TabsTrigger>
-            <TabsTrigger value="zone-analysis">Zone Analysis</TabsTrigger>
-            <TabsTrigger value="trends">Trends</TabsTrigger>
-          </TabsList>
+        {/* Navigation Tabs - Simplified */}
+        <div className="flex border-b border-gray-200 mb-6">
+          <button
+            onClick={() => setActiveView("overview")}
+            className={`px-4 py-2 font-medium text-sm ${activeView === "overview" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveView("consumption-details")}
+            className={`px-4 py-2 font-medium text-sm ${activeView === "consumption-details" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Consumption Details
+          </button>
+          <button
+            onClick={() => setActiveView("zone-analysis")}
+            className={`px-4 py-2 font-medium text-sm ${activeView === "zone-analysis" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Zone Analysis
+          </button>
+          <button
+            onClick={() => setActiveView("trends")}
+            className={`px-4 py-2 font-medium text-sm ${activeView === "trends" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          >
+            Trends
+          </button>
+        </div>
 
-          {/* Overview tab content */}
-          <TabsContent value="overview" className="space-y-8">
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="shadow-md">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-1">Consumption Trend</h3>
-                  <p className="text-sm text-gray-500 mb-4">Monthly electricity consumption in kWh</p>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={consumptionTrendData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="consumption" 
-                          name="Total Consumption (kWh)" 
-                          stroke={ACCENT_COLOR} 
-                          strokeWidth={2} 
-                          dot={{ r: 4, strokeWidth: 1, fill: ACCENT_COLOR }} 
-                          activeDot={{ r: 6, fill: BASE_COLOR, stroke: BASE_COLOR }} 
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-md">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-1">Zone Consumption Breakdown</h3>
-                  <p className="text-sm text-gray-500 mb-4">Distribution for {selectedMonth}</p>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie 
-                          data={zoneBreakdownData} 
-                          cx="50%" 
-                          cy="50%" 
-                          innerRadius={isMobile ? 40 : 60} 
-                          outerRadius={isMobile ? 60 : 90} 
-                          paddingAngle={2} 
-                          dataKey="value" 
-                          nameKey="name" 
-                          labelLine={false} 
-                          label={({ name, percentage }: any) => `${name} (${percentage}%)`}
-                        >
-                          {zoneBreakdownData.map((entry, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={CHART_COLORS[index % CHART_COLORS.length]} 
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value, name, props: any) => [
-                          `${Number(value).toLocaleString()} kWh (${props.payload.percentage}%)`, 
-                          name
-                        ]} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Overview View */}
+        {activeView === "overview" && (
+          <div>
+            {/* Main Chart - Showing consumption distribution - Similar to water dashboard */}
+            <div className="bg-white p-5 rounded-lg shadow-md mb-6">
+              <h2 className="text-lg font-semibold text-gray-700 mb-4">Electricity Consumption Distribution - {selectedMonth}</h2>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={[{
+                      month: selectedMonth,
+                      totalConsumption: summaryMetrics.totalConsumption,
+                      peakDemand: summaryMetrics.peakDemand,
+                      avgPerMeter: summaryMetrics.averageConsumptionPerMeter
+                    }]} 
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="totalConsumption" name="Total Consumption (kWh)" fill={BASE_COLOR} />
+                    <Bar dataKey="peakDemand" name="Peak Demand (kW)" fill={ACCENT_COLOR} />
+                    <Bar dataKey="avgPerMeter" name="Avg. Per Meter (kWh)" fill={SUCCESS_COLOR} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            {/* Highest consumption units */}
-            <Card className="shadow-md">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-1">Highest Consumption Units</h3>
-                <p className="text-sm text-gray-500 mb-4">Top 5 units by electricity usage for {selectedMonth}</p>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={highConsumptionData} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                      <XAxis type="number" />
-                      <YAxis 
-                        type="category" 
-                        dataKey="unit_name" 
-                        width={90}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <Tooltip formatter={(value) => [`${Number(value).toLocaleString()} kWh`, '']} />
-                      <Legend />
-                      <Bar dataKey="consumption_value" name="Consumption (kWh)" fill={BASE_COLOR}>
-                        {highConsumptionData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={CHART_COLORS[index % CHART_COLORS.length]} 
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+            {/* Zone Distribution Chart */}
+            <div className="bg-white p-5 rounded-lg shadow-md mb-6">
+              <h2 className="text-lg font-semibold text-gray-700 mb-4">Zone Distribution - {selectedMonth}</h2>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={zoneBreakdownData} 
+                    margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`${Number(value).toLocaleString()} kWh`, '']} />
+                    <Legend />
+                    <Bar dataKey="value" name="Consumption (kWh)" fill={ACCENT_COLOR} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
 
-          {/* Consumption Details tab content */}
-          <TabsContent value="consumption-details">
-            <Card className="shadow-md">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-1">Detailed Consumption Data</h3>
-                <p className="text-sm text-gray-500 mb-4">Raw data table with search, sort, and filter options for all meters and months.</p>
-                <ElectricityDataTable initialData={tableData} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Zone Analysis tab content */}
-          <TabsContent value="zone-analysis">
-            <Card className="shadow-md">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-1">Zone Analysis</h3>
-                <p className="text-sm text-gray-500 mb-4">Detailed breakdown by zone</p>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zone Name</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Consumption (kWh)</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Meters Count</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Consumption (kWh)</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">% of Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {zoneSummary
-                        .filter(zone => zone.month_year === selectedMonth)
-                        .map((zone, index) => {
-                          const totalConsumption = zoneSummary
-                            .filter(z => z.month_year === selectedMonth)
-                            .reduce((sum, z) => sum + z.total_consumption, 0);
-                          
-                          const percentOfTotal = (zone.total_consumption / totalConsumption * 100).toFixed(1);
-                          
-                          return (
-                            <tr key={index}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{zone.zone_name}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{zone.total_consumption.toLocaleString()}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{zone.meters_count}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{zone.avg_consumption.toLocaleString()}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{percentOfTotal}%</td>
-                            </tr>
-                          );
-                        })}
-                    </tbody>
-                  </table>
-                </div>
-                
-                {/* Zone comparison chart */}
-                <div className="h-80 mt-6">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart 
-                      data={zoneSummary.filter(zone => zone.month_year === selectedMonth)} 
-                      margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                      <XAxis dataKey="zone_name" />
-                      <YAxis yAxisId="left" orientation="left" label={{ value: 'Consumption (kWh)', angle: -90, position: 'insideLeft' }} />
-                      <YAxis yAxisId="right" orientation="right" label={{ value: 'Meters Count', angle: -90, position: 'insideRight' }} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar yAxisId="left" dataKey="total_consumption" name="Total Consumption (kWh)" fill={BASE_COLOR} />
-                      <Bar yAxisId="right" dataKey="meters_count" name="Number of Meters" fill={ACCENT_COLOR} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+        {/* Consumption Details View */}
+        {activeView === "consumption-details" && (
+          <div className="bg-white p-5 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold mb-1">Detailed Consumption Data</h3>
+            <p className="text-sm text-gray-500 mb-4">Raw data table with search, sort, and filter options for all meters and months.</p>
+            <ElectricityDataTable initialData={tableData} />
+          </div>
+        )}
 
-          {/* Trends tab content */}
-          <TabsContent value="trends">
-            <Card className="shadow-md">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-1">Consumption and Demand Trends</h3>
-                <p className="text-sm text-gray-500 mb-4">Historical trends for consumption and peak demand</p>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={consumptionTrendData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis yAxisId="left" orientation="left" />
-                      <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip />
-                      <Legend />
-                      <Line 
-                        yAxisId="left"
-                        type="monotone" 
-                        dataKey="consumption" 
-                        name="Consumption (kWh)" 
-                        stroke={BASE_COLOR} 
-                        activeDot={{ r: 8 }} 
-                      />
-                      <Line 
-                        yAxisId="right"
-                        type="monotone" 
-                        dataKey="peakDemand" 
-                        name="Peak Demand (kW)" 
-                        stroke={ACCENT_COLOR} 
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                
-                {/* Temperature impact chart (if available) */}
-                {consumptionTrendData.some(d => d.temperature !== null) && (
-                  <div className="mt-10">
-                    <h3 className="text-lg font-semibold mb-1">Temperature vs. Consumption Correlation</h3>
-                    <p className="text-sm text-gray-500 mb-4">Impact of average temperature on electricity consumption</p>
-                    <div className="h-80">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart 
-                          data={consumptionTrendData.filter(d => d.temperature !== null)} 
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis yAxisId="left" orientation="left" />
-                          <YAxis yAxisId="right" orientation="right" domain={[20, 50]} />
-                          <Tooltip />
-                          <Legend />
-                          <Line 
-                            yAxisId="left"
-                            type="monotone" 
-                            dataKey="consumption" 
-                            name="Consumption (kWh)" 
-                            stroke={BASE_COLOR} 
-                          />
-                          <Line 
-                            yAxisId="right"
-                            type="monotone" 
-                            dataKey="temperature" 
-                            name="Avg. Temperature (°C)" 
-                            stroke="#FF8042" 
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        {/* Zone Analysis View */}
+        {activeView === "zone-analysis" && (
+          <div className="bg-white p-5 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold mb-1">Zone Analysis</h3>
+            <p className="text-sm text-gray-500 mb-4">Detailed breakdown by zone</p>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zone Name</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Consumption (kWh)</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Meters Count</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Consumption (kWh)</th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">% of Total</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {zoneSummary
+                    .filter(zone => zone.month_year === selectedMonth)
+                    .map((zone, index) => {
+                      const totalConsumption = zoneSummary
+                        .filter(z => z.month_year === selectedMonth)
+                        .reduce((sum, z) => sum + z.total_consumption, 0);
+                      
+                      const percentOfTotal = (zone.total_consumption / totalConsumption * 100).toFixed(1);
+                      
+                      return (
+                        <tr key={index}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{zone.zone_name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{zone.total_consumption.toLocaleString()}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{zone.meters_count}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{zone.avg_consumption.toLocaleString()}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">{percentOfTotal}%</td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Trends View */}
+        {activeView === "trends" && (
+          <div className="bg-white p-5 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">Consumption Trend</h2>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={consumptionTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="consumption"
+                    name="Consumption (kWh)"
+                    stroke={ACCENT_COLOR}
+                    strokeWidth={3}
+                    dot={{ r: 4, strokeWidth: 2 }}
+                    activeDot={{ r: 6, strokeWidth: 2, fill: "#4E4456", stroke: "#4E4456" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
