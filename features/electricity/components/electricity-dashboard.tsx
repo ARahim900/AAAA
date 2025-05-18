@@ -18,11 +18,9 @@ import {
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DashboardCard } from "@/components/ui/dashboard-card";
-import { SectionHeader } from "@/components/ui/section-header";
 import { cn } from "@/lib/utils";
 import { useMobile } from "@/hooks/use-mobile";
-import ElectricityDataTable from "./electricity-data-table"; // Added import
+import ElectricityDataTable from "./electricity-data-table";
 
 // Color Palette
 const BASE_COLOR = "#4E4456";
@@ -57,7 +55,40 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export default function ElectricityDashboard() { // Renamed from ElectricityDashboardNew for consistency
+// KPI Card Component to Match Water Dashboard
+function KPICard({ title, value, unit, icon, trendValue, trendLabel }: { 
+  title: string; 
+  value: string | number; 
+  unit?: string;
+  icon?: React.ReactNode;
+  trendValue?: number;
+  trendLabel?: string;
+}) {
+  const formattedValue = typeof value === 'number' ? value.toLocaleString() : value;
+  const trendColor = trendValue ? (trendValue > 0 ? 'text-green-500' : 'text-red-500') : '';
+  const trendIcon = trendValue ? (trendValue > 0 ? '↑' : '↓') : '';
+  
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4 h-full">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-gray-600 text-sm font-medium">{title}</h3>
+        {icon && <span className="text-gray-400">{icon}</span>}
+      </div>
+      <div className="flex items-baseline">
+        <span className="text-3xl font-bold text-gray-800">{formattedValue}</span>
+        {unit && <span className="ml-1 text-gray-500">{unit}</span>}
+      </div>
+      {trendValue && (
+        <div className={`flex items-center mt-2 text-sm ${trendColor}`}>
+          <span>{trendIcon} {Math.abs(trendValue).toFixed(1)}%</span>
+          <span className="ml-1 text-gray-500">vs previous {trendLabel || 'period'}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function ElectricityDashboard() {
   const [electricityData, setElectricityData] = useState<ElectricityRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -165,89 +196,108 @@ export default function ElectricityDashboard() { // Renamed from ElectricityDash
     );
   }
 
+  // Format for month selector to match water dashboard
+  const formattedMonth = selectedMonth ? 
+    `${selectedMonth.split('-')[0]}-${selectedMonth.split('-')[1].length === 2 ? '20' + selectedMonth.split('-')[1] : selectedMonth.split('-')[1]}` : "";
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
-      {/* Improved Header with gradient background */}
-      <div
-        className="relative overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${BASE_COLOR} 0%, ${SECONDARY_COLOR} 100%)`,
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <div className="container mx-auto px-4 py-6 relative z-10">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div className="flex items-center gap-4">
-              <img src="/logo.png" alt="Muscat Bay Logo" className="h-12 w-auto" /> 
-              <div>
-                <h1 className="text-3xl font-bold text-white">Muscat Bay Electricity Management</h1>
-                <p className="text-purple-100 mt-1">Advanced Real-time Analytics Dashboard</p>
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header section styled to match water dashboard */}
+      <div className="bg-[#4E4456] py-4">
+        <div className="container mx-auto px-6">
+          <div className="mb-4 flex items-center">
+            <img src="/logo.png" alt="Muscat Bay Logo" className="h-12 w-auto mr-4" />
+            <div>
+              <h1 className="text-2xl font-bold text-white">Muscat Bay Electricity Management</h1>
+              <p className="text-gray-300 text-sm">Advanced Real-time Analytics Dashboard</p>
             </div>
-             {monthColumns.length > 0 && (
-                <select 
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="bg-white/10 border border-white/20 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-200 mt-4 md:mt-0"
-                >
-                    {monthColumns.map(month => (
-                        <option key={month} value={month}>{month}</option>
-                    ))}
-                </select>
-            )}
+          </div>
+
+          {/* Month selector in the header */}
+          <div className="flex justify-end items-center mb-4">
+            <div className="flex items-center">
+              <span className="text-white mr-2">Month:</span>
+              <select 
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="bg-white/10 text-white border border-white/20 rounded px-2 py-1"
+              >
+                {monthColumns.map(month => (
+                  <option key={month} value={month}>{month}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          {/* Month timeline */}
+          <div className="flex overflow-x-auto py-2 bg-[#3d3545] rounded-t-lg">
+            {monthColumns.map(month => (
+              <button
+                key={month}
+                onClick={() => setSelectedMonth(month)}
+                className={`px-4 py-2 mx-1 whitespace-nowrap rounded 
+                  ${selectedMonth === month ? 'bg-[#8ACCD5] text-[#4E4456]' : 'bg-transparent text-gray-300 hover:bg-white/10'}`}
+              >
+                {month}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex overflow-x-auto scrollbar-hide h-auto border-b border-gray-200">
-            {["Overview", "Consumption Details", "Cost Analysis", "Trends"].map(tabName => (
-              <TabsTrigger
-                key={tabName.toLowerCase().replace(" ", "-")}
-                value={tabName.toLowerCase().replace(" ", "-")}
-                className="px-4 py-3 font-medium transition-all duration-200 text-sm whitespace-nowrap data-[state=active]:text-[#8ACCD5] data-[state=active]:border-b-2 data-[state=active]:border-[#8ACCD5] data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-[#8ACCD5] focus-visible:ring-0 focus-visible:ring-offset-0"
-              >
-                {tabName}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      <div className="container mx-auto px-6 py-8">
+        {/* Tabs navigation */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <div className="flex -mb-px">
+              {["Overview", "Consumption Details", "Cost Analysis", "Trends"].map(tab => (
+                <button
+                  key={tab.toLowerCase().replace(" ", "-")}
+                  onClick={() => setActiveTab(tab.toLowerCase().replace(" ", "-"))}
+                  className={`mr-1 py-3 px-4 text-sm font-medium 
+                    ${activeTab === tab.toLowerCase().replace(" ", "-") 
+                      ? "border-b-2 border-[#8ACCD5] text-[#4E4456]" 
+                      : "text-gray-500 hover:text-[#8ACCD5]"}`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
-          <TabsContent value="overview" className="space-y-6 mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <DashboardCard 
-                title="Total Consumption" 
-                value={summaryMetrics.totalConsumption.toLocaleString()} 
+        {/* Overview tab content */}
+        {activeTab === "overview" && (
+          <div className="space-y-8">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <KPICard 
+                title="Total Consumption"
+                value={summaryMetrics.totalConsumption}
                 unit="kWh"
-                mainValue={summaryMetrics.totalConsumption} 
-                mainValueUnit="kWh" 
               />
-              <DashboardCard 
-                title="Peak Demand (Current Month)" 
-                value={summaryMetrics.peakDemand.toLocaleString()} 
+              <KPICard 
+                title="Peak Demand (Current Month)"
+                value={summaryMetrics.peakDemand}
                 unit="kW"
-                mainValue={summaryMetrics.peakDemand} 
-                mainValueUnit="kW" 
               />
-              <DashboardCard 
-                title="Avg. Consumption / Meter" 
-                value={summaryMetrics.averageConsumptionPerMeter.toFixed(2)} 
+              <KPICard 
+                title="Avg. Consumption / Meter"
+                value={Number(summaryMetrics.averageConsumptionPerMeter.toFixed(2))}
                 unit="kWh"
-                mainValue={parseFloat(summaryMetrics.averageConsumptionPerMeter.toFixed(2))} 
-                mainValueUnit="kWh" 
               />
-              <DashboardCard 
-                title="Number of Meters" 
-                value={summaryMetrics.numberOfMeters.toString()} 
-                unit=""
-                mainValue={summaryMetrics.numberOfMeters} 
-                mainValueUnit="" 
+              <KPICard 
+                title="Number of Meters"
+                value={summaryMetrics.numberOfMeters}
               />
             </div>
+
+            {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
+              <Card className="shadow-md">
                 <CardContent className="p-6">
-                  <SectionHeader title="Consumption Trend" description="Monthly electricity consumption in kWh" />
+                  <h3 className="text-lg font-semibold mb-1">Consumption Trend</h3>
+                  <p className="text-sm text-gray-500 mb-4">Monthly electricity consumption in kWh</p>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={consumptionTrendData}>
@@ -262,9 +312,10 @@ export default function ElectricityDashboard() { // Renamed from ElectricityDash
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="shadow-md">
                 <CardContent className="p-6">
-                  <SectionHeader title="Usage Breakdown by Type" description={`Distribution for ${selectedMonth}`} />
+                  <h3 className="text-lg font-semibold mb-1">Usage Breakdown by Type</h3>
+                  <p className="text-sm text-gray-500 mb-4">Distribution for {selectedMonth}</p>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -281,35 +332,39 @@ export default function ElectricityDashboard() { // Renamed from ElectricityDash
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="consumption-details" className="space-y-6 mt-6">
-            <Card>
-              <CardContent className="p-6">
-                <SectionHeader title="Detailed Consumption Data" description="Raw data table with search, sort, and filter options for all meters and months." />
-                <ElectricityDataTable initialData={electricityData} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="cost-analysis" className="space-y-6 mt-6">
-            <Card>
-                <CardContent className="p-6">
-                    <SectionHeader title="Cost Analysis" />
-                    <p className="text-gray-600 mt-4">Detailed cost analysis requires unit cost data (e.g., cost per kWh), which is not currently available in the provided dataset. Future enhancements could include integrating tariff information to calculate and visualize electricity costs.</p>
-                </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="trends" className="space-y-6 mt-6">
-            <Card>
-                <CardContent className="p-6">
-                    <SectionHeader title="Advanced Trends" />
-                    <p className="text-gray-600 mt-4">The "Overview" tab provides a monthly consumption trend. More advanced trend analysis, such as year-over-year comparisons, seasonal decomposition, or forecasting, would require more extensive historical data and specialized analytical models. This section can be expanded as more data becomes available.</p>
-                </CardContent>
-            </Card>
-          </TabsContent>
+        {/* Consumption Details tab content */}
+        {activeTab === "consumption-details" && (
+          <Card className="shadow-md">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-1">Detailed Consumption Data</h3>
+              <p className="text-sm text-gray-500 mb-4">Raw data table with search, sort, and filter options for all meters and months.</p>
+              <ElectricityDataTable initialData={electricityData} />
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* Cost Analysis tab content */}
+        {activeTab === "cost-analysis" && (
+          <Card className="shadow-md">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-1">Cost Analysis</h3>
+              <p className="text-gray-600 mt-4">Detailed cost analysis requires unit cost data (e.g., cost per kWh), which is not currently available in the provided dataset. Future enhancements could include integrating tariff information to calculate and visualize electricity costs.</p>
+            </CardContent>
+          </Card>
+        )}
 
-        </Tabs>
+        {/* Trends tab content */}
+        {activeTab === "trends" && (
+          <Card className="shadow-md">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-1">Advanced Trends</h3>
+              <p className="text-gray-600 mt-4">The "Overview" tab provides a monthly consumption trend. More advanced trend analysis, such as year-over-year comparisons, seasonal decomposition, or forecasting, would require more extensive historical data and specialized analytical models. This section can be expanded as more data becomes available.</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
