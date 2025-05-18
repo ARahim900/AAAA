@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import { MainLayout } from "@/components/layout/main-layout"
-import WaterDashboard from "@/features/water/components/water-dashboard"
+// Import both components for flexibility
+import WaterDashboard from "@/components/water-dashboard"
+import NewWaterDashboardHeader from "@/components/new-water-dashboard-header"
 
 export default function WaterPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("monthly")
@@ -17,19 +19,17 @@ export default function WaterPage() {
     { value: "reports", label: "Reports & Insights" },
   ]
 
+  // You can choose which component to render based on your preference
+  // Option 1: Use the updated WaterDashboard component that already has the new header design
+  // Option 2: Use the completely new header component 
+
   return (
-    <MainLayout
-      title="Water Analytics"
-      subtitle="Advanced Real-time Analytics Dashboard" 
-      showPeriodSelector
-      showTabs
-      tabs={tabs}
-      selectedTab={selectedTab}
-      onTabChange={setSelectedTab}
-      selectedPeriod={selectedPeriod}
-      onPeriodChange={setSelectedPeriod}
-    >
-      <WaterDashboard tab={selectedTab} period={selectedPeriod} />
-    </MainLayout>
+    <>
+      {/* Option 1: Use the original dashboard with the changes already made */}
+      <WaterDashboard />
+      
+      {/* Option 2: Or use just the new header component */}
+      {/* <NewWaterDashboardHeader /> */}
+    </>
   )
 }
