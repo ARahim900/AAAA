@@ -1,8 +1,11 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { motion } from "framer-motion"
+import { ChevronRight, Menu, X } from "lucide-react"
 
 const navigation = [
   {
@@ -175,49 +178,179 @@ const navigation = [
 
 export function SideNavigation() {
   const pathname = usePathname()
+  const [collapsed, setCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   
+  // Check if we're on mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Close mobile nav when changing pages
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
+  // Animation variants
+  const sidebarVariants = {
+    expanded: { width: '16rem' },
+    collapsed: { width: '5rem' }
+  }
+
+  // Mobile overlay animation
+  const overlayVariants = {
+    open: { opacity: 1, x: 0 },
+    closed: { opacity: 0, x: '-100%' }
+  }
+
   return (
-    <div className="fixed top-0 left-0 h-screen w-64 bg-[#4E4456] text-white py-4 px-2 z-10">
-      <div className="flex items-center justify-center mb-8 px-4">
-        <div className="text-xl font-bold">Muscat Bay Utilities</div>
-      </div>
-      
-      <nav className="space-y-1 px-2">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href || 
-            (item.href !== '/' && pathname?.startsWith(item.href));
-          
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors",
-                isActive
-                  ? "bg-[#8ACCD5]/20 text-white"
-                  : "text-gray-100 hover:bg-[#8ACCD5]/10 hover:text-white"
-              )}
+    <>
+      {/* Mobile menu overlay */}
+      {isMobile && (
+        <div className="block lg:hidden">
+          <button 
+            onClick={() => setMobileOpen(true)}
+            className="fixed top-4 left-4 z-20 p-2 rounded-md bg-[#4E4456] text-white shadow-md"
+          >
+            <Menu size={24} />
+          </button>
+
+          {mobileOpen && (
+            <motion.div
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={overlayVariants}
+              className="fixed inset-0 bg-black bg-opacity-50 z-30"
+              onClick={() => setMobileOpen(false)}
             >
-              <span className={cn("mr-3", isActive ? "text-[#8ACCD5]" : "")}>
-                {item.icon}
-              </span>
-              {item.title}
-            </Link>
-          )
-        })}
-      </nav>
-      
-      <div className="absolute bottom-0 left-0 right-0 p-4">
-        <div className="flex items-center space-x-2 bg-[#3A3441] rounded-md p-2">
-          <div className="h-8 w-8 rounded-full bg-[#8ACCD5] flex items-center justify-center">
-            <span className="font-semibold text-[#4E4456]">MB</span>
-          </div>
-          <div>
-            <div className="text-sm font-medium">Muscat Bay</div>
-            <div className="text-xs text-gray-300">Utility Admin</div>
+              <motion.div 
+                className="fixed top-0 left-0 h-screen w-64 bg-[#4E4456] text-white py-4 px-2 z-40"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-8 px-4">
+                  <div className="text-xl font-bold">Muscat Bay Utilities</div>
+                  <button 
+                    onClick={() => setMobileOpen(false)}
+                    className="text-white p-1 rounded-full hover:bg-[#8ACCD5]/20"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <nav className="space-y-1 px-2">
+                  {navigation.map((item) => {
+                    const isActive = pathname === item.href || 
+                      (item.href !== '/' && pathname?.startsWith(item.href));
+                    
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors",
+                          isActive
+                            ? "bg-[#8ACCD5]/20 text-white"
+                            : "text-gray-100 hover:bg-[#8ACCD5]/10 hover:text-white"
+                        )}
+                      >
+                        <span className={cn("mr-3", isActive ? "text-[#8ACCD5]" : "")}>
+                          {item.icon}
+                        </span>
+                        {item.title}
+                      </Link>
+                    )
+                  })}
+                </nav>
+                
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <div className="flex items-center space-x-2 bg-[#3A3441] rounded-md p-2">
+                    <div className="h-8 w-8 rounded-full bg-[#8ACCD5] flex items-center justify-center">
+                      <span className="font-semibold text-[#4E4456]">MB</span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium">Muscat Bay</div>
+                      <div className="text-xs text-gray-300">Utility Admin</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </div>
+      )}
+
+      {/* Desktop sidebar */}
+      <motion.div 
+        className="hidden lg:block fixed top-0 left-0 h-screen bg-[#4E4456] text-white py-4 px-2 z-10"
+        variants={sidebarVariants}
+        initial="expanded"
+        animate={collapsed ? "collapsed" : "expanded"}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="flex items-center justify-between mb-8 px-4">
+          {!collapsed && (
+            <div className="text-xl font-bold truncate">Muscat Bay Utilities</div>
+          )}
+          <button 
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-1 rounded-full hover:bg-[#8ACCD5]/20 text-white"
+          >
+            <ChevronRight
+              size={20}
+              className={`transform transition-transform ${collapsed ? 'rotate-180' : ''}`}
+            />
+          </button>
+        </div>
+        
+        <nav className="space-y-1 px-2">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || 
+              (item.href !== '/' && pathname?.startsWith(item.href));
+            
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={collapsed ? item.title : ""}
+                className={cn(
+                  "flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors",
+                  isActive
+                    ? "bg-[#8ACCD5]/20 text-white"
+                    : "text-gray-100 hover:bg-[#8ACCD5]/10 hover:text-white",
+                  collapsed ? "justify-center" : ""
+                )}
+              >
+                <span className={cn("", isActive ? "text-[#8ACCD5]" : "", collapsed ? "" : "mr-3")}>
+                  {item.icon}
+                </span>
+                {!collapsed && item.title}
+              </Link>
+            )
+          })}
+        </nav>
+        
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <div className={cn(
+            "flex items-center bg-[#3A3441] rounded-md p-2",
+            collapsed ? "justify-center" : "space-x-2"
+          )}>
+            <div className="h-8 w-8 shrink-0 rounded-full bg-[#8ACCD5] flex items-center justify-center">
+              <span className="font-semibold text-[#4E4456]">MB</span>
+            </div>
+            {!collapsed && (
+              <div>
+                <div className="text-sm font-medium">Muscat Bay</div>
+                <div className="text-xs text-gray-300">Utility Admin</div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </>
   )
 }
