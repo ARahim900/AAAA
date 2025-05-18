@@ -76,11 +76,11 @@ interface DataFilterProps {
 const DataFilter = ({ label, options, value, onChange, className }: DataFilterProps) => {
   return (
     <div className={`flex items-center space-x-2 ${className}`}>
-      <label className="text-sm font-medium text-white">{label}:</label>
+      <label className="text-sm font-medium text-gray-700">{label}:</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-white/10 border border-white/20 text-white rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-200"
+        className="bg-gray-100 border border-gray-300 text-gray-700 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
         aria-label={`Select ${label}`}
       >
         {options.map((option) => (
@@ -222,89 +222,27 @@ export default function ElectricityDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header with gradient background - matched to water dashboard */}
-      <div
-        className="relative overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${BASE_COLOR} 0%, ${SECONDARY_COLOR} 100%)`,
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10" aria-hidden="true">
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="white" strokeWidth="0.5" />
-              </pattern>
-              <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-                <rect width="100" height="100" fill="url(#smallGrid)" />
-                <path d="M 100 0 L 0 0 0 100" fill="none" stroke="white" strokeWidth="1" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
-        </div>
+    <div>
+      {/* Filters Section */}
+      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+        <div className="flex flex-wrap gap-4">
+          <DataFilter
+            label="Month"
+            options={monthOptions}
+            value={selectedMonth}
+            onChange={setSelectedMonth}
+          />
 
-        <div className="container mx-auto px-4 py-6 relative z-10">
-          {/* Header Content - matches water dashboard */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <div className="flex items-center gap-4">
-              <img src="/logo.png" alt="Muscat Bay Logo" className="h-12 w-auto" />
-              <div>
-                <h1 className="text-3xl font-bold text-white">Electricity Management</h1>
-                <p className="text-purple-100 mt-1">Advanced Real-time Analytics Dashboard</p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
-              {/* Filters Section */}
-              <div className="flex flex-wrap gap-3">
-                <DataFilter
-                  label="Month"
-                  options={monthOptions}
-                  value={selectedMonth}
-                  onChange={setSelectedMonth}
-                  className="bg-white/10 rounded-lg px-3 py-2 text-white"
-                />
-
-                <DataFilter
-                  label="Zone"
-                  options={zoneOptions}
-                  value={selectedZone}
-                  onChange={setSelectedZone}
-                  className="bg-white/10 rounded-lg px-3 py-2 text-white"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Time Range Slider with white text */}
-          <div className="mt-2">
-            <div className="w-full px-4">
-              <input
-                type="range"
-                min={0}
-                max={monthColumns.length - 1}
-                value={monthColumns.indexOf(selectedMonth)}
-                onChange={(e) => setSelectedMonth(monthColumns[Number(e.target.value)])}
-                className="w-full h-2 bg-gradient-to-r from-[#8ACCD5] to-[#8ACCD5] rounded-lg appearance-none cursor-pointer"
-                aria-label="Time range slider"
-              />
-              <div className="flex justify-between mt-2 text-xs text-white">
-                {monthColumns.filter((_, i) => i % 2 === 0 || i === monthColumns.length - 1).map((month, index) => (
-                  <span key={index} className={selectedMonth === month ? "font-bold text-white bg-[#4E4456] px-2 py-1 rounded" : ""}>
-                    {month}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
+          <DataFilter
+            label="Zone"
+            options={zoneOptions}
+            value={selectedZone}
+            onChange={setSelectedZone}
+          />
         </div>
       </div>
 
-      {/* Main Dashboard Content - Simplified to match water dashboard */}
+      {/* Main Dashboard Content */}
       <div className="container mx-auto px-4 py-6">
         {/* Key Metrics Section - Simplified cards to match water dashboard */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
