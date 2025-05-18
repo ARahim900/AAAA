@@ -1,16 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  Card,
-  CardContent
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DashboardCard } from "@/components/ui/dashboard-card";
-import { SectionHeader } from "@/components/ui/section-header";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useMobile } from "@/hooks/use-mobile";
-import ContractorDataTable from "./contractor-data-table"; // Ensure this is correctly imported
+import ContractorDataTable from "./contractor-data-table";
 import {
   PieChart,
   Pie,
@@ -64,10 +58,44 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+// KPI Card Component to Match Water Dashboard
+function KPICard({ title, value, unit, icon, trendValue, trendLabel }: { 
+  title: string; 
+  value: string | number; 
+  unit?: string;
+  icon?: React.ReactNode;
+  trendValue?: number;
+  trendLabel?: string;
+}) {
+  const formattedValue = typeof value === 'number' ? value.toLocaleString() : value;
+  const trendColor = trendValue ? (trendValue > 0 ? 'text-green-500' : 'text-red-500') : '';
+  const trendIcon = trendValue ? (trendValue > 0 ? '↑' : '↓') : '';
+  
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4 h-full">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-gray-600 text-sm font-medium">{title}</h3>
+        {icon && <span className="text-gray-400">{icon}</span>}
+      </div>
+      <div className="flex items-baseline">
+        <span className="text-3xl font-bold text-gray-800">{formattedValue}</span>
+        {unit && <span className="ml-1 text-gray-500">{unit}</span>}
+      </div>
+      {trendValue && (
+        <div className={`flex items-center mt-2 text-sm ${trendColor}`}>
+          <span>{trendIcon} {Math.abs(trendValue).toFixed(1)}%</span>
+          <span className="ml-1 text-gray-500">vs previous {trendLabel || 'period'}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ContractorTrackerDashboard() {
   const [contractorData, setContractorData] = useState<ContractorRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [filter, setFilter] = useState("all"); // all, active, expired, upcoming
   const isMobile = useMobile();
 
   useEffect(() => {
@@ -82,6 +110,37 @@ export default function ContractorTrackerDashboard() {
         setIsLoading(false);
       });
   }, []);
+
+  const filteredData = useMemo(() => {
+    if (filter === "all") return contractorData;
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const next60Days = new Date();
+    next60Days.setDate(today.getDate() + 60);
+    
+    return contractorData.filter(contract => {
+      const status = contract.Status?.toLowerCase();
+      let endDate: Date | null = null;
+      
+      if (contract.EndDate) {
+        const parts = contract.EndDate.split("/"); // Assuming DD/MM/YYYY
+        if (parts.length === 3) {
+          endDate = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+        }
+      }
+      
+      if (filter === "active") {
+        return status === "active";
+      } else if (filter === "expired") {
+        return (endDate && endDate < today) || status?.includes("expire");
+      } else if (filter === "upcoming") {
+        return status === "active" && endDate && endDate >= today && endDate <= next60Days;
+      }
+      
+      return true;
+    });
+  }, [contractorData, filter]);
 
   const summaryMetrics = useMemo(() => {
     if (contractorData.length === 0) {
@@ -124,7 +183,6 @@ export default function ContractorTrackerDashboard() {
         // If status says expired but date is not in past, count as expired by status
         expiredCount++;
       }
-
     });
 
     return {
@@ -170,143 +228,182 @@ export default function ContractorTrackerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
-      {/* Improved Header with gradient background */}
-      <div 
-        className="relative overflow-hidden" 
-        style={{ 
-          background: `linear-gradient(135deg, ${BASE_COLOR} 0%, ${SECONDARY_COLOR} 100%)`, 
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" 
-        }}
-      >
-        <div className="container mx-auto px-4 py-6 relative z-10">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div className="flex items-center gap-4">
-              <img src="/logo.png" alt="Muscat Bay Logo" className="h-12 w-auto" />
-              <div>
-                <h1 className="text-3xl font-bold text-white">Muscat Bay Contractor Tracker</h1>
-                <p className="text-purple-100 mt-1">Manage and Monitor Contractor Agreements</p>
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header section styled to match water dashboard */}
+      <div className="bg-[#4E4456] py-4">
+        <div className="container mx-auto px-6">
+          <div className="mb-4 flex items-center">
+            <img src="/logo.png" alt="Muscat Bay Logo" className="h-12 w-auto mr-4" />
+            <div>
+              <h1 className="text-2xl font-bold text-white">Muscat Bay Contractor Tracker</h1>
+              <p className="text-gray-300 text-sm">Manage and Monitor Contractor Agreements</p>
             </div>
+          </div>
+
+          {/* Filter selector in the header */}
+          <div className="flex justify-end items-center mb-4">
+            <div className="flex items-center">
+              <span className="text-white mr-2">Status:</span>
+              <select 
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="bg-white/10 text-white border border-white/20 rounded px-2 py-1"
+              >
+                <option value="all">All Contracts</option>
+                <option value="active">Active Only</option>
+                <option value="expired">Expired</option>
+                <option value="upcoming">Expiring Soon (60 Days)</option>
+              </select>
+            </div>
+          </div>
+          
+          {/* Status filter tabs */}
+          <div className="flex overflow-x-auto py-2 bg-[#3d3545] rounded-t-lg">
+            {["All", "Active", "Expired", "Upcoming Expiries"].map(status => (
+              <button
+                key={status}
+                onClick={() => setFilter(status.toLowerCase().replace(" expiries", ""))}
+                className={`px-4 py-2 mx-1 whitespace-nowrap rounded 
+                  ${filter === status.toLowerCase().replace(" expiries", "") 
+                    ? 'bg-[#8ACCD5] text-[#4E4456]' 
+                    : 'bg-transparent text-gray-300 hover:bg-white/10'}`}
+              >
+                {status}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex overflow-x-auto scrollbar-hide h-auto border-b border-gray-200">
-            {["Overview", "All Contracts", "Analytics"].map(tabName => (
-              <TabsTrigger 
-                key={tabName.toLowerCase().replace(" ", "-")} 
-                value={tabName.toLowerCase().replace(" ", "-")} 
-                className="px-4 py-3 font-medium transition-all duration-200 text-sm whitespace-nowrap data-[state=active]:text-[#8ACCD5] data-[state=active]:border-b-2 data-[state=active]:border-[#8ACCD5] data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-[#8ACCD5] focus-visible:ring-0"
-              >
-                {tabName}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      <div className="container mx-auto px-6 py-8">
+        {/* Tabs navigation */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <div className="flex -mb-px">
+              {["Overview", "All Contracts", "Analytics"].map(tab => (
+                <button
+                  key={tab.toLowerCase().replace(" ", "-")}
+                  onClick={() => setActiveTab(tab.toLowerCase().replace(" ", "-"))}
+                  className={`mr-1 py-3 px-4 text-sm font-medium 
+                    ${activeTab === tab.toLowerCase().replace(" ", "-") 
+                      ? "border-b-2 border-[#8ACCD5] text-[#4E4456]" 
+                      : "text-gray-500 hover:text-[#8ACCD5]"}`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
-          <TabsContent value="overview" className="space-y-6 mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <DashboardCard 
-                title="Total Contracts" 
-                value={summaryMetrics.totalContracts.toString()} 
-                unit="" 
-                mainValue={summaryMetrics.totalContracts}
-                mainValueUnit=""
+        {/* Overview tab content */}
+        {activeTab === "overview" && (
+          <div className="space-y-8">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <KPICard 
+                title="Total Contracts"
+                value={summaryMetrics.totalContracts}
+                icon={<span className="text-[#4E4456]">📑</span>}
               />
-              <DashboardCard 
-                title="Active Contracts" 
-                value={summaryMetrics.activeContracts.toString()} 
-                unit="" 
-                mainValue={summaryMetrics.activeContracts}
-                mainValueUnit=""
+              <KPICard 
+                title="Active Contracts"
+                value={summaryMetrics.activeContracts}
+                icon={<span className="text-green-500">✓</span>}
               />
-              <DashboardCard 
-                title="Expired Contracts" 
-                value={summaryMetrics.expiredContracts.toString()} 
-                unit="" 
-                mainValue={summaryMetrics.expiredContracts}
-                mainValueUnit=""
+              <KPICard 
+                title="Expired Contracts"
+                value={summaryMetrics.expiredContracts}
+                icon={<span className="text-red-500">⚠</span>}
               />
-              <DashboardCard 
-                title="Upcoming Expiries (60 Days)" 
-                value={summaryMetrics.upcomingExpiries.toString()} 
-                unit="" 
-                mainValue={summaryMetrics.upcomingExpiries}
-                mainValueUnit=""
+              <KPICard 
+                title="Upcoming Expiries (60 Days)"
+                value={summaryMetrics.upcomingExpiries}
+                icon={<span className="text-amber-500">⏰</span>}
               />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardContent className="p-6">
-                        <SectionHeader title="Contract Status Distribution" description="Breakdown of contracts by their current status." />
-                        <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie data={contractStatusDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={isMobile ? 70 : 90} labelLine={false} label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
-                                        {contractStatusDistribution.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Legend />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-6">
-                        <SectionHeader title="Expiring Contracts Timeline (Next 10)" description="Upcoming contract end dates." />
-                        <div className="h-80 overflow-y-auto">
-                            {expiringContractsTimeline.length > 0 ? (
-                                <ul className="space-y-3">
-                                    {expiringContractsTimeline.map((contract, index) => (
-                                        <li key={index} className="p-3 bg-gray-100 rounded-md shadow-sm">
-                                            <div className="font-medium text-sm text-[#4E4456]">{contract.Contractor}</div>
-                                            <div className="text-xs text-gray-600">Service: {contract.ServiceProvided}</div>
-                                            <div className="text-xs text-red-500 font-semibold">Expires: {contract.EndDate}</div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-gray-500 text-center pt-10">No contracts expiring soon or data unavailable.</p>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-          </TabsContent>
-
-          <TabsContent value="all-contracts" className="space-y-6 mt-6">
-            <Card>
-              <CardContent className="p-6">
-                <SectionHeader title="All Contractor Agreements" description="Detailed list with search, sort, and filter options" />
-                <ContractorDataTable initialData={contractorData} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="analytics" className="space-y-6 mt-6">
-             <Card>
+              <Card className="shadow-md">
                 <CardContent className="p-6">
-                    <SectionHeader title="Contract Analytics" />
-                    <p className="text-gray-600 mt-4">Further contract analytics could be developed based on specific requirements. For example:</p>
-                    <ul className="list-disc list-inside text-gray-600 mt-2 space-y-1">
-                        <li>Analysis of contract values (OMR/Month, OMR/Year) by contract type or service.</li>
-                        <li>Distribution of contract durations.</li>
-                        <li>Trends in new contracts or renewals over time.</li>
-                    </ul>
-                    <p className="text-gray-600 mt-4">This section can be expanded when more detailed financial data or specific analytical goals are provided.</p>
+                  <h3 className="text-lg font-semibold mb-1">Contract Status Distribution</h3>
+                  <p className="text-sm text-gray-500 mb-4">Breakdown of contracts by their current status.</p>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie 
+                          data={contractStatusDistribution} 
+                          dataKey="value" 
+                          nameKey="name" 
+                          cx="50%" 
+                          cy="50%" 
+                          outerRadius={isMobile ? 70 : 90} 
+                          labelLine={false} 
+                          label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        >
+                          {contractStatusDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </CardContent>
-            </Card>
-          </TabsContent>
+              </Card>
 
-        </Tabs>
+              <Card className="shadow-md">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-1">Expiring Contracts Timeline (Next 10)</h3>
+                  <p className="text-sm text-gray-500 mb-4">Upcoming contract end dates.</p>
+                  <div className="h-80 overflow-y-auto">
+                    {expiringContractsTimeline.length > 0 ? (
+                      <ul className="space-y-3">
+                        {expiringContractsTimeline.map((contract, index) => (
+                          <li key={index} className="p-3 bg-gray-100 rounded-md shadow-sm">
+                            <div className="font-medium text-sm text-[#4E4456]">{contract.Contractor}</div>
+                            <div className="text-xs text-gray-600">Service: {contract.ServiceProvided}</div>
+                            <div className="text-xs text-red-500 font-semibold">Expires: {contract.EndDate}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500 text-center pt-10">No contracts expiring soon or data unavailable.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* All Contracts tab content */}
+        {activeTab === "all-contracts" && (
+          <Card className="shadow-md">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-1">All Contractor Agreements</h3>
+              <p className="text-sm text-gray-500 mb-4">Detailed list with search, sort, and filter options</p>
+              <ContractorDataTable initialData={filteredData} />
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* Analytics tab content */}
+        {activeTab === "analytics" && (
+          <Card className="shadow-md">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-1">Contract Analytics</h3>
+              <p className="text-gray-600 mt-4">Further contract analytics could be developed based on specific requirements. For example:</p>
+              <ul className="list-disc list-inside text-gray-600 mt-2 space-y-1">
+                <li>Analysis of contract values (OMR/Month, OMR/Year) by contract type or service.</li>
+                <li>Distribution of contract durations.</li>
+                <li>Trends in new contracts or renewals over time.</li>
+              </ul>
+              <p className="text-gray-600 mt-4">This section can be expanded when more detailed financial data or specific analytical goals are provided.</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
