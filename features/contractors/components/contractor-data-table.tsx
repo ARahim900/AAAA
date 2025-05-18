@@ -93,12 +93,12 @@ export default function ContractorDataTable({ initialData }: ContractorDataTable
             return sortConfig.direction === "ascending" ? dateA - dateB : dateB - dateA;
         }
         
-        // Attempt to parse OMR values for sorting
+        // Fixed OMR values parsing for sorting
         if (sortConfig.key === "ContractOMRMonth" || sortConfig.key === "ContractTotalOMRYear") {
-            const numA = parseFloat(String(aValue).replace(/[^\d.-]/g, 	ı"));
-            const numB = parseFloat(String(bValue).replace(/[^\d.-]/g, 	ı"));
+            const numA = parseFloat(String(aValue).replace(/[^\d.-]/g, ""));
+            const numB = parseFloat(String(bValue).replace(/[^\d.-]/g, ""));
             if (!isNaN(numA) && !isNaN(numB)) {
-                 return sortConfig.direction === "ascending" ? numA - numB : numB - numA;
+                return sortConfig.direction === "ascending" ? numA - numB : numB - numA;
             }
         }
 
@@ -214,7 +214,7 @@ export default function ContractorDataTable({ initialData }: ContractorDataTable
                 {columnConfig.map(col => (
                   <TableHead
                     key={col.key}
-                    className={cn("cursor-pointer whitespace-nowrap", col.className)}
+                    className={`cursor-pointer whitespace-nowrap ${col.className || ""}`}
                     onClick={() => requestSort(col.key)}
                   >
                     <div className={`flex items-center ${col.className?.includes("text-right") ? "justify-end" : ""}`}>
@@ -236,10 +236,10 @@ export default function ContractorDataTable({ initialData }: ContractorDataTable
                 filteredData.map((record, index) => (
                   <TableRow key={index}>
                     {columnConfig.map(col => (
-                      <TableCell key={col.key} className={cn(col.className, 
+                      <TableCell key={col.key} className={`${col.className || ""} ${
                         col.key === "Status" && record.Status?.toLowerCase() === "active" ? "text-green-600 font-medium" :
                         col.key === "Status" && record.Status?.toLowerCase().includes("expire") ? "text-red-600 font-medium" : ""
-                      )}>
+                      }`}>
                         {String(record[col.key] === null || record[col.key] === undefined || String(record[col.key]).toLowerCase() === "nan" ? "—" : record[col.key])}
                       </TableCell>
                     ))}
@@ -257,3 +257,6 @@ export default function ContractorDataTable({ initialData }: ContractorDataTable
   );
 }
 
+function cn(...classes: string[]) {
+  return classes.filter(Boolean).join(' ');
+}
