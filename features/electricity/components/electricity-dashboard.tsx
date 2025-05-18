@@ -242,7 +242,7 @@ export default function ElectricityDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Improved Header with gradient background */}
+      {/* Clean Header with gradient background */}
       <div
         className="relative overflow-hidden"
         style={{
@@ -267,18 +267,18 @@ export default function ElectricityDashboard() {
         </div>
 
         <div className="container mx-auto px-4 py-6 relative z-10">
-          {/* Header Content */}
+          {/* Header Content - Clean and simplified */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div className="flex items-center gap-4">
               <img src="/logo.png" alt="Muscat Bay Logo" className="h-12 w-auto" />
               <div>
-                <h1 className="text-3xl font-bold text-white">Muscat Bay Electricity Management</h1>
+                <h1 className="text-3xl font-bold text-white">Electricity Management</h1>
                 <p className="text-purple-100 mt-1">Advanced Real-time Analytics Dashboard</p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
-              {/* Filters Section - Reorganized */}
+              {/* Filters Section - Clean and organized */}
               <div className="flex flex-wrap gap-3">
                 <DataFilter
                   label="Month"
