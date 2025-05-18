@@ -26,6 +26,7 @@ import ElectricityDataTable from "./electricity-data-table"; // Added import
 
 // Color Palette
 const BASE_COLOR = "#4E4456";
+const SECONDARY_COLOR = "#694E5F";
 const ACCENT_COLOR = "#8ACCD5";
 const INFO_COLOR = "#5BC0DE";
 const SUCCESS_COLOR = "#50C878";
@@ -166,10 +167,11 @@ export default function ElectricityDashboard() { // Renamed from ElectricityDash
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
+      {/* Improved Header with gradient background */}
       <div
         className="relative overflow-hidden"
         style={{
-          background: BASE_COLOR,
+          background: `linear-gradient(135deg, ${BASE_COLOR} 0%, ${SECONDARY_COLOR} 100%)`,
           boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
         }}
       >
@@ -213,10 +215,34 @@ export default function ElectricityDashboard() { // Renamed from ElectricityDash
 
           <TabsContent value="overview" className="space-y-6 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <DashboardCard title="Total Consumption" value={summaryMetrics.totalConsumption.toLocaleString()} unit="kWh" />
-              <DashboardCard title="Peak Demand (Current Month)" value={summaryMetrics.peakDemand.toLocaleString()} unit="kW" />
-              <DashboardCard title="Avg. Consumption / Meter" value={summaryMetrics.averageConsumptionPerMeter.toFixed(2)} unit="kWh" />
-              <DashboardCard title="Number of Meters" value={summaryMetrics.numberOfMeters.toString()} unit="" />
+              <DashboardCard 
+                title="Total Consumption" 
+                value={summaryMetrics.totalConsumption.toLocaleString()} 
+                unit="kWh"
+                mainValue={summaryMetrics.totalConsumption} 
+                mainValueUnit="kWh" 
+              />
+              <DashboardCard 
+                title="Peak Demand (Current Month)" 
+                value={summaryMetrics.peakDemand.toLocaleString()} 
+                unit="kW"
+                mainValue={summaryMetrics.peakDemand} 
+                mainValueUnit="kW" 
+              />
+              <DashboardCard 
+                title="Avg. Consumption / Meter" 
+                value={summaryMetrics.averageConsumptionPerMeter.toFixed(2)} 
+                unit="kWh"
+                mainValue={parseFloat(summaryMetrics.averageConsumptionPerMeter.toFixed(2))} 
+                mainValueUnit="kWh" 
+              />
+              <DashboardCard 
+                title="Number of Meters" 
+                value={summaryMetrics.numberOfMeters.toString()} 
+                unit=""
+                mainValue={summaryMetrics.numberOfMeters} 
+                mainValueUnit="" 
+              />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
@@ -288,4 +314,3 @@ export default function ElectricityDashboard() { // Renamed from ElectricityDash
     </div>
   );
 }
-
