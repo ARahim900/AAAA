@@ -194,18 +194,10 @@ export default function ElectricityDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header section styled to match water dashboard */}
-      <div className="bg-[#4E4456] py-4">
-        <div className="container mx-auto px-6">
-          <div className="mb-4 flex items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Muscat Bay Electricity Management</h1>
-              <p className="text-gray-300 text-sm">Advanced Real-time Analytics Dashboard</p>
-            </div>
-          </div>
-
-          {/* Month selector in the header */}
-          <div className="flex overflow-x-auto py-2 bg-[#3d3545] rounded-t-lg">
+      {/* Month selector bar - only display this, not a duplicate header */}
+      <div className="bg-[#3d3545] py-2 px-6">
+        <div className="container mx-auto">
+          <div className="flex overflow-x-auto">
             {monthColumns.map(month => (
               <button
                 key={month}
