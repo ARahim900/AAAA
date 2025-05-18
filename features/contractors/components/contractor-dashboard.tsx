@@ -27,6 +27,7 @@ import {
 
 // Color Palette
 const BASE_COLOR = "#4E4456";
+const SECONDARY_COLOR = "#694E5F";
 const ACCENT_COLOR = "#8ACCD5";
 const INFO_COLOR = "#5BC0DE";
 const SUCCESS_COLOR = "#50C878"; // Active status
@@ -170,7 +171,14 @@ export default function ContractorTrackerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      <div className="relative overflow-hidden" style={{ background: BASE_COLOR, boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
+      {/* Improved Header with gradient background */}
+      <div 
+        className="relative overflow-hidden" 
+        style={{ 
+          background: `linear-gradient(135deg, ${BASE_COLOR} 0%, ${SECONDARY_COLOR} 100%)`, 
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" 
+        }}
+      >
         <div className="container mx-auto px-4 py-6 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div className="flex items-center gap-4">
@@ -191,7 +199,7 @@ export default function ContractorTrackerDashboard() {
               <TabsTrigger 
                 key={tabName.toLowerCase().replace(" ", "-")} 
                 value={tabName.toLowerCase().replace(" ", "-")} 
-                className={`px-4 py-3 font-medium text-sm whitespace-nowrap data-[state=active]:text-[${ACCENT_COLOR}] data-[state=active]:border-b-2 data-[state=active]:border-[${ACCENT_COLOR}] data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-[${ACCENT_COLOR}] focus-visible:ring-0`}
+                className="px-4 py-3 font-medium transition-all duration-200 text-sm whitespace-nowrap data-[state=active]:text-[#8ACCD5] data-[state=active]:border-b-2 data-[state=active]:border-[#8ACCD5] data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-[#8ACCD5] focus-visible:ring-0"
               >
                 {tabName}
               </TabsTrigger>
@@ -200,10 +208,34 @@ export default function ContractorTrackerDashboard() {
 
           <TabsContent value="overview" className="space-y-6 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <DashboardCard title="Total Contracts" value={summaryMetrics.totalContracts.toString()} unit="" />
-              <DashboardCard title="Active Contracts" value={summaryMetrics.activeContracts.toString()} unit="" />
-              <DashboardCard title="Expired Contracts" value={summaryMetrics.expiredContracts.toString()} unit="" />
-              <DashboardCard title="Upcoming Expiries (60 Days)" value={summaryMetrics.upcomingExpiries.toString()} unit="" />
+              <DashboardCard 
+                title="Total Contracts" 
+                value={summaryMetrics.totalContracts.toString()} 
+                unit="" 
+                mainValue={summaryMetrics.totalContracts}
+                mainValueUnit=""
+              />
+              <DashboardCard 
+                title="Active Contracts" 
+                value={summaryMetrics.activeContracts.toString()} 
+                unit="" 
+                mainValue={summaryMetrics.activeContracts}
+                mainValueUnit=""
+              />
+              <DashboardCard 
+                title="Expired Contracts" 
+                value={summaryMetrics.expiredContracts.toString()} 
+                unit="" 
+                mainValue={summaryMetrics.expiredContracts}
+                mainValueUnit=""
+              />
+              <DashboardCard 
+                title="Upcoming Expiries (60 Days)" 
+                value={summaryMetrics.upcomingExpiries.toString()} 
+                unit="" 
+                mainValue={summaryMetrics.upcomingExpiries}
+                mainValueUnit=""
+              />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -234,7 +266,7 @@ export default function ContractorTrackerDashboard() {
                                 <ul className="space-y-3">
                                     {expiringContractsTimeline.map((contract, index) => (
                                         <li key={index} className="p-3 bg-gray-100 rounded-md shadow-sm">
-                                            <div className="font-medium text-sm text-[${BASE_COLOR}]">{contract.Contractor}</div>
+                                            <div className="font-medium text-sm text-[#4E4456]">{contract.Contractor}</div>
                                             <div className="text-xs text-gray-600">Service: {contract.ServiceProvided}</div>
                                             <div className="text-xs text-red-500 font-semibold">Expires: {contract.EndDate}</div>
                                         </li>
@@ -279,4 +311,3 @@ export default function ContractorTrackerDashboard() {
     </div>
   );
 }
-
