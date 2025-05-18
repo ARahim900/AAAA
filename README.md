@@ -8,7 +8,6 @@ A comprehensive dashboard for managing and monitoring all utility systems at Mus
 - **Electricity Management**: Track power consumption and distribution
 - **STP Plant**: Monitor sewage treatment plant performance metrics
 - **Contractor Tracker**: Manage service provider agreements and contract statuses
-- **Waste Management**: Track waste collection and recycling metrics
 
 ## Features
 
