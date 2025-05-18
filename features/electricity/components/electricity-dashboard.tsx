@@ -83,13 +83,13 @@ function KPICard({ title, value, unit, icon, trendValue, trendLabel }: {
   );
 }
 
-// Data Filter component
+// DataFilter Component
 interface DataFilterProps {
-  label: string
-  options: { value: string; label: string }[]
-  value: string
-  onChange: (value: string) => void
-  className?: string
+  label: string;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
 }
 
 const DataFilter = ({ label, options, value, onChange, className }: DataFilterProps) => {
@@ -109,13 +109,14 @@ const DataFilter = ({ label, options, value, onChange, className }: DataFilterPr
         ))}
       </select>
     </div>
-  )
-}
+  );
+};
 
 export default function ElectricityDashboard() {
   const { consumption, zoneSummary, monthlyTrends, highConsumptionUnits, isLoading, error } = useElectricityData();
   const [tableData, setTableData] = useState<any[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>("");
+  const [selectedZone, setSelectedZone] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("overview");
   const isMobile = useMobile();
 
@@ -133,12 +134,27 @@ export default function ElectricityDashboard() {
   }, [consumption, monthlyTrends, selectedMonth]);
 
   // Available month columns for selector
-  const monthOptions = useMemo(() => {
-    return monthlyTrends.map(m => ({
-      value: m.month_year,
-      label: m.month_year,
-    }));
+  const monthColumns = useMemo(() => {
+    return monthlyTrends.map(m => m.month_year);
   }, [monthlyTrends]);
+
+  // Generate month options for filter dropdown
+  const monthOptions = useMemo(() => {
+    return monthColumns.map(month => ({
+      value: month,
+      label: month
+    }));
+  }, [monthColumns]);
+
+  // Zone options for filter
+  const zoneOptions = [
+    { value: "all", label: "All Zones" },
+    { value: "Zone01", label: "Zone 01" },
+    { value: "Zone02", label: "Zone 02" },
+    { value: "Zone03", label: "Zone 03" },
+    { value: "Zone04", label: "Zone 04" },
+    { value: "Zone05", label: "Zone 05" },
+  ];
 
   // Calculate summary metrics for the selected month
   const summaryMetrics = useMemo(() => {
@@ -202,17 +218,6 @@ export default function ElectricityDashboard() {
       .slice(0, 5);
   }, [selectedMonth, highConsumptionUnits]);
 
-  // Zone options for filter
-  const zoneOptions = [
-    { value: "all", label: "All Zones" },
-    { value: "Zone01", label: "Zone 01" },
-    { value: "Zone02", label: "Zone 02" },
-    { value: "Zone03", label: "Zone 03" },
-    { value: "Zone04", label: "Zone 04" },
-    { value: "Zone05", label: "Zone 05" },
-  ];
-  const [selectedZone, setSelectedZone] = useState("all");
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -237,7 +242,7 @@ export default function ElectricityDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Enhanced Header with gradient background */}
+      {/* Improved Header with gradient background */}
       <div
         className="relative overflow-hidden"
         style={{
@@ -300,16 +305,16 @@ export default function ElectricityDashboard() {
               <input
                 type="range"
                 min={0}
-                max={monthOptions.length - 1}
-                value={monthOptions.findIndex(m => m.value === selectedMonth)}
-                onChange={(e) => setSelectedMonth(monthOptions[Number(e.target.value)].value)}
+                max={monthColumns.length - 1}
+                value={monthColumns.indexOf(selectedMonth)}
+                onChange={(e) => setSelectedMonth(monthColumns[Number(e.target.value)])}
                 className="w-full h-2 bg-gradient-to-r from-[#8ACCD5] to-[#8ACCD5] rounded-lg appearance-none cursor-pointer"
                 aria-label="Time range slider"
               />
               <div className="flex justify-between mt-2 text-xs text-white">
-                {monthOptions.filter((_, i) => i % 2 === 0 || i === monthOptions.length - 1).map((month, index) => (
-                  <span key={index} className={selectedMonth === month.value ? "font-bold text-white bg-[#4E4456] px-2 py-1 rounded" : ""}>
-                    {month.label}
+                {monthColumns.filter((_, i) => i % 2 === 0 || i === monthColumns.length - 1).map((month, index) => (
+                  <span key={index} className={selectedMonth === month ? "font-bold text-white bg-[#4E4456] px-2 py-1 rounded" : ""}>
+                    {month}
                   </span>
                 ))}
               </div>
