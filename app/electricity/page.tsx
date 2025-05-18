@@ -3,9 +3,8 @@ import ElectricityDashboard from "@/features/electricity/components/electricity-
 
 export default function ElectricityPage() {
   return (
-    <DashboardLayout title="Electricity Management" subtitle="Real-time Electricity Usage Analytics">
+    <DashboardLayout title="Electricity Management" subtitle="Real-time Electricity Analytics Dashboard">
       <ElectricityDashboard />
     </DashboardLayout>
   );
 }
-
