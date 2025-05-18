@@ -1,30 +1,31 @@
 "use client"
 
+import { useState } from "react"
 import dynamic from "next/dynamic"
+import { MainLayout } from "@/components/layout/main-layout"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
-// Dynamically import dashboard components
+// Dynamically import dashboard components for better performance
 const MainDashboard = dynamic(() => import("@/components/dashboard/main-dashboard"), {
-  loading: () => <LoadingSpinner />,
-})
-
-// Dynamically import section components for future use if needed
-const WaterDashboard = dynamic(() => import("@/components/water-dashboard"), {
-  loading: () => <LoadingSpinner />,
-})
-
-const ElectricityDashboard = dynamic(() => import("@/features/electricity/components/electricity-dashboard"), {
-  loading: () => <LoadingSpinner />,
-})
-
-const StpPlantDashboard = dynamic(() => import("@/features/stp-plant/components/stp-plant-dashboard"), {
-  loading: () => <LoadingSpinner />,
-})
-
-const ContractorDashboard = dynamic(() => import("@/features/contractors/components/contractor-dashboard"), {
-  loading: () => <LoadingSpinner />,
+  loading: () => (
+    <div className="flex justify-center items-center h-96">
+      <LoadingSpinner size="lg" />
+    </div>
+  ),
 })
 
 export default function Home() {
-  return <MainDashboard />
+  const [selectedPeriod, setSelectedPeriod] = useState("monthly")
+  
+  return (
+    <MainLayout
+      title="Muscat Bay Dashboard"
+      subtitle="Utility Management System Overview"
+      selectedPeriod={selectedPeriod}
+      onPeriodChange={setSelectedPeriod}
+      showTabs={false}
+    >
+      <MainDashboard selectedPeriod={selectedPeriod} />
+    </MainLayout>
+  )
 }
