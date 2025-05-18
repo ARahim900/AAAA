@@ -5,13 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SectionHeader } from "@/components/ui/section-header";
 import { 
   DownloadIcon, 
-  SearchIcon, 
-  FilterIcon, 
+  Search, 
+  Filter, 
   ArrowUpDown 
-} from "lucide-react"; // Assuming these icons are available or similar ones
+} from "lucide-react";
 
 interface ElectricityRecord {
   Name: string;
@@ -20,9 +19,9 @@ interface ElectricityRecord {
   [monthYear: string]: number | string | null; // For columns like Apr-24, May-24 etc.
 }
 
-export default function ElectricityDataTable() {
-  const [electricityData, setElectricityData] = useState<ElectricityRecord[]>([]);
-  const [filteredData, setFilteredData] = useState<ElectricityRecord[]>([]);
+export default function ElectricityDataTable({ initialData = [] }: { initialData: ElectricityRecord[] }) {
+  const [data, setData] = useState<ElectricityRecord[]>(initialData);
+  const [filteredData, setFilteredData] = useState<ElectricityRecord[]>(initialData);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
@@ -31,53 +30,55 @@ export default function ElectricityDataTable() {
     direction: 'ascending' | 'descending';
   } | null>(null);
 
-  // Fetch data
+  // Update data when initialData changes
   useEffect(() => {
-    fetch("/api/electricity-data")
-      .then((res) => res.json())
-      .then((data) => {
-        setElectricityData(data);
-        setFilteredData(data);
-        setIsLoading(false);
-      })
-      .catch(error => {
-        console.error("Error fetching electricity data:", error);
-        setIsLoading(false);
-      });
-  }, []);
+    setData(initialData);
+    setFilteredData(initialData);
+    setIsLoading(false);
+  }, [initialData]);
 
   // Get unique types for filter dropdown
   const uniqueTypes = React.useMemo(() => {
     const types = new Set<string>();
-    electricityData.forEach(record => {
+    data.forEach(record => {
       if (record.Type) types.add(record.Type);
     });
     return ["All", ...Array.from(types)];
-  }, [electricityData]);
+  }, [data]);
 
   // Get month columns for table headers
   const monthColumns = React.useMemo(() => {
-    if (electricityData.length === 0) return [];
-    return Object.keys(electricityData[0])
-      .filter(key => key.includes("-") && !isNaN(Number(electricityData[0][key])))
+    if (data.length === 0) return [];
+    return Object.keys(data[0])
+      .filter(key => key.includes("-") && !isNaN(Number(data[0][key])))
       .sort((a, b) => {
-        const [m1, y1] = a.split('-');
-        const [m2, y2] = b.split('-');
-        const dateA = new Date(`20${y1}`, new Date(`${m1} 1, 2000`).getMonth());
-        const dateB = new Date(`20${y2}`, new Date(`${m2} 1, 2000`).getMonth());
-        return dateB.getTime() - dateA.getTime(); // Sort descending (latest first)
+        // Parse the month abbreviation and year
+        const [monthA, yearA = ""] = a.split('-');
+        const [monthB, yearB = ""] = b.split('-');
+        
+        // Compare years first
+        if (yearA !== yearB) {
+          return yearB.localeCompare(yearA); // Most recent year first
+        }
+        
+        // Then compare months
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthIndexA = monthNames.indexOf(monthA);
+        const monthIndexB = monthNames.indexOf(monthB);
+        
+        return monthIndexB - monthIndexA; // Most recent month first
       });
-  }, [electricityData]);
+  }, [data]);
 
   // Filter and sort data
   useEffect(() => {
-    let result = [...electricityData];
+    let result = [...data];
     
     // Apply search filter
     if (searchTerm) {
       result = result.filter(record => 
         record.Name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        (record["Meter Account No."] && record["Meter Account No."].toLowerCase().includes(searchTerm.toLowerCase()))
+        (record["Meter Account No."] && record["Meter Account No."].toString().toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
     
@@ -109,7 +110,7 @@ export default function ElectricityDataTable() {
     }
     
     setFilteredData(result);
-  }, [electricityData, searchTerm, typeFilter, sortConfig]);
+  }, [data, searchTerm, typeFilter, sortConfig]);
 
   // Handle sorting
   const requestSort = (key: string) => {
@@ -162,15 +163,10 @@ export default function ElectricityDataTable() {
   return (
     <Card>
       <CardContent className="p-6">
-        <SectionHeader 
-          title="Electricity Consumption Data" 
-          description="Detailed view of all electricity meters and consumption records"
-        />
-        
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             <div className="relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Search by name or meter number..."
                 value={searchTerm}
@@ -180,7 +176,7 @@ export default function ElectricityDataTable() {
             </div>
             
             <div className="flex items-center gap-2">
-              <FilterIcon className="text-gray-400 h-4 w-4" />
+              <Filter className="text-gray-400 h-4 w-4" />
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
@@ -273,7 +269,7 @@ export default function ElectricityDataTable() {
         </div>
         
         <div className="mt-4 text-sm text-gray-500">
-          Showing {filteredData.length} of {electricityData.length} records
+          Showing {filteredData.length} of {data.length} records
         </div>
       </CardContent>
     </Card>
