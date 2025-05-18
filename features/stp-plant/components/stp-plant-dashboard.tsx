@@ -28,6 +28,7 @@ import StpPlantDataTable from "./stp-plant-data-table"; // Ensure this is correc
 
 // Color Palette
 const BASE_COLOR = "#4E4456";
+const SECONDARY_COLOR = "#694E5F";
 const ACCENT_COLOR = "#8ACCD5";
 const INFO_COLOR = "#5BC0DE";
 const SUCCESS_COLOR = "#50C878";
@@ -157,7 +158,14 @@ export default function StpPlantDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      <div className="relative overflow-hidden" style={{ background: BASE_COLOR, boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
+      {/* Improved Header with gradient background */}
+      <div 
+        className="relative overflow-hidden" 
+        style={{ 
+          background: `linear-gradient(135deg, ${BASE_COLOR} 0%, ${SECONDARY_COLOR} 100%)`, 
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" 
+        }}
+      >
         <div className="container mx-auto px-4 py-6 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div className="flex items-center gap-4">
@@ -194,7 +202,11 @@ export default function StpPlantDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex overflow-x-auto scrollbar-hide h-auto border-b border-gray-200">
             {["Overview", "Detailed Data", "Performance"].map(tabName => (
-              <TabsTrigger key={tabName.toLowerCase().replace(" ", "-")} value={tabName.toLowerCase().replace(" ", "-")} className={`px-4 py-3 font-medium text-sm whitespace-nowrap data-[state=active]:text-[${ACCENT_COLOR}] data-[state=active]:border-b-2 data-[state=active]:border-[${ACCENT_COLOR}] data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-[${ACCENT_COLOR}] focus-visible:ring-0`}>
+              <TabsTrigger 
+                key={tabName.toLowerCase().replace(" ", "-")} 
+                value={tabName.toLowerCase().replace(" ", "-")} 
+                className="px-4 py-3 font-medium transition-all duration-200 text-sm whitespace-nowrap data-[state=active]:text-[#8ACCD5] data-[state=active]:border-b-2 data-[state=active]:border-[#8ACCD5] data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-[#8ACCD5] focus-visible:ring-0"
+              >
                 {tabName}
               </TabsTrigger>
             ))}
@@ -202,11 +214,41 @@ export default function StpPlantDashboard() {
 
           <TabsContent value="overview" className="space-y-6 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <DashboardCard title="Total Inlet Sewage" value={summaryMetrics.totalInletSewage.toLocaleString()} unit="m³" />
-              <DashboardCard title="Total Treated Water" value={summaryMetrics.totalTreatedWater.toLocaleString()} unit="m³" />
-              <DashboardCard title="Total TSE Output" value={summaryMetrics.totalTseOutput.toLocaleString()} unit="m³" />
-              <DashboardCard title="Avg. Daily Inlet" value={summaryMetrics.averageDailyInlet.toFixed(2)} unit="m³/day" />
-              <DashboardCard title="Treatment Efficiency" value={summaryMetrics.treatmentEfficiency.toFixed(2)} unit="%" />
+              <DashboardCard 
+                title="Total Inlet Sewage" 
+                value={summaryMetrics.totalInletSewage.toLocaleString()} 
+                unit="m³" 
+                mainValue={summaryMetrics.totalInletSewage}
+                mainValueUnit="m³"
+              />
+              <DashboardCard 
+                title="Total Treated Water" 
+                value={summaryMetrics.totalTreatedWater.toLocaleString()} 
+                unit="m³" 
+                mainValue={summaryMetrics.totalTreatedWater}
+                mainValueUnit="m³"
+              />
+              <DashboardCard 
+                title="Total TSE Output" 
+                value={summaryMetrics.totalTseOutput.toLocaleString()} 
+                unit="m³" 
+                mainValue={summaryMetrics.totalTseOutput}
+                mainValueUnit="m³"
+              />
+              <DashboardCard 
+                title="Avg. Daily Inlet" 
+                value={summaryMetrics.averageDailyInlet.toFixed(2)} 
+                unit="m³/day" 
+                mainValue={parseFloat(summaryMetrics.averageDailyInlet.toFixed(2))}
+                mainValueUnit="m³/day"
+              />
+              <DashboardCard 
+                title="Treatment Efficiency" 
+                value={summaryMetrics.treatmentEfficiency.toFixed(2)} 
+                unit="%" 
+                mainValue={parseFloat(summaryMetrics.treatmentEfficiency.toFixed(2))}
+                mainValueUnit="%"
+              />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
@@ -279,4 +321,3 @@ export default function StpPlantDashboard() {
     </div>
   );
 }
-
