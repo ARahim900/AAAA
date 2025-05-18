@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { SideNavigation } from "./side-navigation"
 import { Header } from "./header"
+import { Breadcrumb } from "@/components/ui/breadcrumb"
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -11,6 +12,7 @@ interface MainLayoutProps {
   showPeriodSelector?: boolean
   showControls?: boolean
   showTabs?: boolean
+  showBreadcrumb?: boolean
   tabs?: { value: string; label: string }[]
   selectedTab?: string
   onTabChange?: (value: string) => void
@@ -26,6 +28,7 @@ export function MainLayout({
   showPeriodSelector = true,
   showControls = true,
   showTabs = false,
+  showBreadcrumb = true,
   tabs = [],
   selectedTab,
   onTabChange,
@@ -58,6 +61,12 @@ export function MainLayout({
         />
         
         <main className="container mx-auto px-4 py-6 lg:px-8">
+          {showBreadcrumb && (
+            <div className="mb-6">
+              <Breadcrumb className="text-sm text-gray-500" />
+            </div>
+          )}
+          
           {children}
         </main>
       </div>
