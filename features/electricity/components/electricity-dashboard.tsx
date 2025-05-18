@@ -83,6 +83,35 @@ function KPICard({ title, value, unit, icon, trendValue, trendLabel }: {
   );
 }
 
+// Data Filter component
+interface DataFilterProps {
+  label: string
+  options: { value: string; label: string }[]
+  value: string
+  onChange: (value: string) => void
+  className?: string
+}
+
+const DataFilter = ({ label, options, value, onChange, className }: DataFilterProps) => {
+  return (
+    <div className={`flex items-center space-x-2 ${className}`}>
+      <label className="text-sm font-medium text-white">{label}:</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="bg-white/10 border border-white/20 text-white rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-200"
+        aria-label={`Select ${label}`}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 export default function ElectricityDashboard() {
   const { consumption, zoneSummary, monthlyTrends, highConsumptionUnits, isLoading, error } = useElectricityData();
   const [tableData, setTableData] = useState<any[]>([]);
@@ -104,8 +133,11 @@ export default function ElectricityDashboard() {
   }, [consumption, monthlyTrends, selectedMonth]);
 
   // Available month columns for selector
-  const monthColumns = useMemo(() => {
-    return monthlyTrends.map(m => m.month_year);
+  const monthOptions = useMemo(() => {
+    return monthlyTrends.map(m => ({
+      value: m.month_year,
+      label: m.month_year,
+    }));
   }, [monthlyTrends]);
 
   // Calculate summary metrics for the selected month
@@ -170,6 +202,17 @@ export default function ElectricityDashboard() {
       .slice(0, 5);
   }, [selectedMonth, highConsumptionUnits]);
 
+  // Zone options for filter
+  const zoneOptions = [
+    { value: "all", label: "All Zones" },
+    { value: "Zone01", label: "Zone 01" },
+    { value: "Zone02", label: "Zone 02" },
+    { value: "Zone03", label: "Zone 03" },
+    { value: "Zone04", label: "Zone 04" },
+    { value: "Zone05", label: "Zone 05" },
+  ];
+  const [selectedZone, setSelectedZone] = useState("all");
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -194,24 +237,83 @@ export default function ElectricityDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Month selector bar - only display this, not a duplicate header */}
-      <div className="bg-[#3d3545] py-2 px-6">
-        <div className="container mx-auto">
-          <div className="flex overflow-x-auto">
-            {monthColumns.map(month => (
-              <button
-                key={month}
-                onClick={() => setSelectedMonth(month)}
-                className={cn(
-                  "px-4 py-2 mx-1 whitespace-nowrap rounded",
-                  selectedMonth === month 
-                    ? "bg-[#8ACCD5] text-[#4E4456]" 
-                    : "bg-transparent text-gray-300 hover:bg-white/10"
-                )}
-              >
-                {month}
-              </button>
-            ))}
+      {/* Enhanced Header with gradient background */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${BASE_COLOR} 0%, ${SECONDARY_COLOR} 100%)`,
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10" aria-hidden="true">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="white" strokeWidth="0.5" />
+              </pattern>
+              <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+                <rect width="100" height="100" fill="url(#smallGrid)" />
+                <path d="M 100 0 L 0 0 0 100" fill="none" stroke="white" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </div>
+
+        <div className="container mx-auto px-4 py-6 relative z-10">
+          {/* Header Content */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div className="flex items-center gap-4">
+              <img src="/logo.png" alt="Muscat Bay Logo" className="h-12 w-auto" />
+              <div>
+                <h1 className="text-3xl font-bold text-white">Muscat Bay Electricity Management</h1>
+                <p className="text-purple-100 mt-1">Advanced Real-time Analytics Dashboard</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
+              {/* Filters Section - Reorganized */}
+              <div className="flex flex-wrap gap-3">
+                <DataFilter
+                  label="Month"
+                  options={monthOptions}
+                  value={selectedMonth}
+                  onChange={setSelectedMonth}
+                  className="bg-white/10 rounded-lg px-3 py-2 text-white"
+                />
+
+                <DataFilter
+                  label="Zone"
+                  options={zoneOptions}
+                  value={selectedZone}
+                  onChange={setSelectedZone}
+                  className="bg-white/10 rounded-lg px-3 py-2 text-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Time Range Slider with white text */}
+          <div className="mt-2">
+            <div className="w-full px-4">
+              <input
+                type="range"
+                min={0}
+                max={monthOptions.length - 1}
+                value={monthOptions.findIndex(m => m.value === selectedMonth)}
+                onChange={(e) => setSelectedMonth(monthOptions[Number(e.target.value)].value)}
+                className="w-full h-2 bg-gradient-to-r from-[#8ACCD5] to-[#8ACCD5] rounded-lg appearance-none cursor-pointer"
+                aria-label="Time range slider"
+              />
+              <div className="flex justify-between mt-2 text-xs text-white">
+                {monthOptions.filter((_, i) => i % 2 === 0 || i === monthOptions.length - 1).map((month, index) => (
+                  <span key={index} className={selectedMonth === month.value ? "font-bold text-white bg-[#4E4456] px-2 py-1 rounded" : ""}>
+                    {month.label}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
